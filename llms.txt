@@ -2,7 +2,7 @@
 > Solo Entrepreneur & Hacker
 
 ## Summary
-Who the hell am I? I'm @Stan370, a solo entrepreneur, full-stack hacker, and builder of apps. I love to hack systems and use frontier AI models to build cool things. I share everything I know about making awesome software through my projects, articles, and open-source experiments.
+Who am I? I'm @Stan370, a solo entrepreneur, full-stack hacker, and builder of apps. I love to hack systems and use frontier AI models to build cool things. I share everything I know about making awesome software through my projects, articles, and open-source experiments.
 
 ## Skills
 - React, TypeScript, Node.js, Frontier AI, Rapid Prototyping, Full-Stack

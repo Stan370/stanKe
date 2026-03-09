@@ -22,14 +22,21 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
   const curlCommand = `curl -X GET stan.dev/api/projects/${project.id}`;
 
-  const copyToClipboard = () => {
+  const copyToClipboard = (e: React.MouseEvent) => {
+    e.stopPropagation();
     navigator.clipboard.writeText(curlCommand);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="group bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-all flex flex-col h-full">
+    <div
+      onClick={() => {
+        const url = project.demoUrl || project.githubUrl || project.blogUrl;
+        if (url && url !== '#') window.open(url, '_blank', 'noreferrer');
+      }}
+      className="group bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-all flex flex-col h-full cursor-pointer"
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <CategoryIcon category={project.category} />
@@ -72,7 +79,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         <div className="relative group/curl">
           <div className="bg-black border border-zinc-800 rounded p-2 flex items-center justify-between gap-2">
             <code className="text-[10px] text-zinc-400 font-mono truncate">{curlCommand}</code>
-            <button 
+            <button
               onClick={copyToClipboard}
               className="text-zinc-600 hover:text-white transition-colors flex-shrink-0"
             >
@@ -83,12 +90,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
         <div className="flex items-center gap-4 pt-4 border-t border-zinc-800">
           {project.githubUrl && (
-            <a href={project.githubUrl} target="_blank" rel="noreferrer" className="text-zinc-500 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest">
+            <a href={project.githubUrl} onClick={e => e.stopPropagation()} target="_blank" rel="noreferrer" className="text-zinc-500 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest">
               <Github size={14} /> Source
             </a>
           )}
           {project.demoUrl && (
-            <a href={project.demoUrl} target="_blank" rel="noreferrer" className="text-zinc-500 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest">
+            <a href={project.demoUrl} onClick={e => e.stopPropagation()} target="_blank" rel="noreferrer" className="text-zinc-500 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest">
               <ExternalLink size={14} /> Live
             </a>
           )}

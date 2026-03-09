@@ -9,7 +9,7 @@ export const PORTFOLIO_DATA: Project[] = [
     category: ProjectCategory.SYSTEMS,
     description: 'A high-throughput authentication sidecar designed for zero-trust Kubernetes environments. Handles token introspection and RBAC enforcement at the pod level.',
     tags: ['Go', 'Kubernetes', 'gRPC', 'OIDC'],
-    imageUrl: 'https://picsum.photos/800/400?grayscale', 
+    imageUrl: 'https://picsum.photos/800/400?grayscale',
     metrics: [
       { name: 'Avg Latency (ms)', value: 12, unit: 'ms' },
       { name: 'P99 Latency (ms)', value: 45, unit: 'ms' },
@@ -69,8 +69,26 @@ export const PORTFOLIO_DATA: Project[] = [
     imageUrl: 'https://picsum.photos/800/404',
     demoUrl: 'https://devpost.com/Stan370'
   },
-  
+
   // --- GAMES ---
+  {
+    id: 'reddit-tile-match',
+    title: 'Reddit Tile Match',
+    category: ProjectCategory.GAMES,
+    description: 'A new version of an old tile-match UGC game, incorporating features like daily challenges, a Reddit scheduler, and an auto-post bot, built using Devvit 0.12.',
+    tags: ['Devvit', 'Reddit API', 'React'],
+    imageUrl: 'https://picsum.photos/800/410',
+    demoUrl: 'https://www.reddit.com/r/TileMatch/',
+  },
+  {
+    id: 'league-mbti',
+    title: 'League MBTI Analysis',
+    category: ProjectCategory.GAMES,
+    description: 'A data-driven web application to analyze the MBTI personality types of League of Legends players based on their champion pools and playstyles.',
+    tags: ['Analytics', 'Web', 'Data'],
+    imageUrl: 'https://picsum.photos/800/411',
+    demoUrl: 'https://league-mbti-analysis.pages.dev/',
+  },
   {
     id: 'reddit-place-game',
     title: 'Pixel War Strategy',
@@ -125,6 +143,11 @@ export const BIO = {
   name: "Stan",
   title: "Solo Entrepreneur & Hacker",
   tagline: "Building apps and hacking systems with frontier AI.",
-  summary: "Who the hell am I? I'm @Stan370, a solo entrepreneur, full-stack hacker, and builder of apps. I love to hack systems and use frontier AI models to build cool things. I share everything I know about making awesome software through my projects, articles, and open-source experiments.",
-  skills: ["React", "TypeScript", "Node.js", "Frontier AI", "Rapid Prototyping", "Full-Stack"]
+  summary: "Who the hell am I? I'm @Stan370, a solo entrepreneur, full stack hacker, and builder of apps. I love to hack systems and use frontier AI models to build cool things. I share everything I know about making awesome software through my projects, articles, and open-source experiments.",
+  skills: [
+    "Golang", "Node.js", "Python", "RESTful", "Socket", "Auth", "Microservices", "Concurrency", "Distributed Systems",
+    "LLM Integration", "Agent Architecture", "Multi-model Routing", "Whisper ASR",
+    "TypeScript", "React", "Next.js", "Vite", "TailwindCSS",
+    "Docker", "Linux", "CI/CD", "Observability"
+  ]
 };

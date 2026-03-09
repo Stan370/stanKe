@@ -84,8 +84,8 @@ const App: React.FC = () => {
               </div>
 
               <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tighter mb-8 leading-tight">
-                Solo Entrepreneur & Hacker.<br />
-                <span className="text-zinc-500">Building apps with frontier AI.</span>
+                Hacker & Solo Entrepreneur.<br />
+                <span className="text-zinc-500">Learning and Building.</span>
               </h1>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
@@ -94,12 +94,12 @@ const App: React.FC = () => {
                     <Command size={14} /> 01. Abstract
                   </h2>
                   <div className="text-zinc-400 leading-relaxed space-y-4">
-                    <p><strong>Who the hell am I?</strong></p>
+                    <p><strong>Who am I?</strong></p>
                     <p>
                       I'm <a href="https://github.com/Stan370" target="_blank" rel="noreferrer" className="text-white hover:text-accent underline decoration-zinc-700 underline-offset-4">@Stan370</a>, a solo entrepreneur, full-stack hacker, and builder of apps. I love to hack systems and use frontier AI models to build cool things.
                     </p>
                     <p>
-                      I share everything I know about making awesome software through my <button onClick={() => setCurrentView('works')} className="text-white hover:text-accent underline decoration-zinc-700 underline-offset-4">projects</button>, <button onClick={() => setCurrentView('blogs')} className="text-white hover:text-accent underline decoration-zinc-700 underline-offset-4">articles</button>, and open-source experiments.
+                      I share everything I know about and what I've been working on through my <button onClick={() => setCurrentView('works')} className="text-white hover:text-accent underline decoration-zinc-700 underline-offset-4">projects</button>, <button onClick={() => setCurrentView('blogs')} className="text-white hover:text-accent underline decoration-zinc-700 underline-offset-4">blogs</button>, and open-source experiments.
                     </p>
                   </div>
                 </div>
@@ -145,7 +145,7 @@ const App: React.FC = () => {
             <section className="border-t border-zinc-800 pt-12">
               <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-8">Featured Projects</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {worksProjects.slice(0, 2).map(project => (
+                {worksProjects.filter(p => ['reddit-tile-match', 'league-mbti'].includes(p.id)).map(project => (
                   <ProjectCard key={project.id} project={project} />
                 ))}
               </div>
@@ -175,8 +175,8 @@ const App: React.FC = () => {
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
                   className={`text-[10px] font-mono uppercase tracking-widest transition-all px-3 py-1 border ${activeCategory === cat
-                      ? 'bg-white text-black border-white'
-                      : 'text-zinc-500 border-zinc-800 hover:border-zinc-600'
+                    ? 'bg-white text-black border-white'
+                    : 'text-zinc-500 border-zinc-800 hover:border-zinc-600'
                     }`}
                 >
                   {cat}
@@ -285,8 +285,8 @@ const App: React.FC = () => {
             &copy; 2026 STAN.DEV / ALL_RIGHTS_RESERVED / BUILT_FOR_AGENTS
           </div>
           <div className="flex gap-6 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
-            <a href="#" className="hover:text-white transition-colors">GitHub</a>
-            <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
+            <a href="https://github.com/Stan370" className="hover:text-white transition-colors">GitHub</a>
+            <a href="https://stan370.github.io/" className="hover:text-white transition-colors">DeprecatedBlogs</a>
             <a href="#" className="hover:text-white transition-colors">Twitter</a>
           </div>
         </div>
