@@ -1,0 +1,50 @@
+# Stan's Engineering Portfolio
+> Solo Entrepreneur & Hacker
+
+## Summary
+Who the hell am I? I'm @Stan370, a solo entrepreneur, full-stack hacker, and builder of apps. I love to hack systems and use frontier AI models to build cool things. I share everything I know about making awesome software through my projects, articles, and open-source experiments.
+
+## Skills
+- React, TypeScript, Node.js, Frontier AI, Rapid Prototyping, Full-Stack
+
+## Projects
+
+### Distributed Auth System for K8s
+- **Description**: A high-throughput authentication sidecar designed for zero-trust Kubernetes environments. Handles token introspection and RBAC enforcement at the pod level.
+- **Stack**: Golang, Envoy, Redis Cluster, Prometheus
+- **Metrics**: 12ms Avg Latency, 15000 QPS Capacity
+
+### Scalable LLM Agent Infrastructure
+- **Description**: Event-driven architecture for managing stateful LLM agents. Features a custom vector retrieval pipeline and optimistic concurrency control for agent memory.
+- **Stack**: Python, Celery, Pinecone, Docker
+- **Metrics**: 120ms Context Retrieval, 500 Concurrent Agents
+
+### TonyChat: Context-Aware Assistant
+- **Description**: A React Native + Python assistant that builds a local knowledge graph of user interactions to provide personalized context without sending PII to cloud models.
+- **Stack**: Llama.cpp, Neo4j, TypeScript
+
+### VCT Agent Manager
+- **Description**: An autonomous agent interface for managing Valorant Champions Tour fantasy leagues. Scrapes real-time data and proposes roster changes.
+- **Stack**: Vercel AI SDK, Postgres, Tailwind
+
+### NeuroSync (HackMIT Winner)
+- **Description**: Real-time EEG visualization tool using WebBluetooth and WebGL.
+- **Hypothesis**: Can we visualize focus states in browser with < 50ms latency?
+- **Outcome**: Achieved 30ms render loop. Won Best Health Tech.
+
+### Pixel War Strategy
+- **Description**: A simulation game based on r/place. Coordinate pixel placement with bots in a simulated chaotic environment.
+- **Stack**: Canvas API, WebSockets, Rust (WASM)
+
+### Klotski Solver & UI
+- **Description**: A BFS-based solver for the Klotski sliding block puzzle with a smooth, animated React UI.
+- **Stack**: Algorithms, React, Framer Motion
+
+## Blog Posts
+- **K8s Source Reading: Scheduler Internals**: Deep dive into priority queues and scoring plugins.
+- **Evaluating RAG Pipelines**: Metrics that matter (faithfulness, relevance, precision).
+- **Rust + WASM**: Bringing native performance to the web via physics engine rewrite.
+
+## Contact
+- GitHub: https://github.com/Stan370
+- Email: kjmcs2048@gmail.com
