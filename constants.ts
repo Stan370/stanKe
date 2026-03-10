@@ -17,7 +17,8 @@ export const PORTFOLIO_DATA: Project[] = [
     ],
     techStack: ['Golang', 'Envoy', 'Redis Cluster', 'Prometheus'],
     githubUrl: 'https://github.com/Stan370',
-    blogUrl: '#'
+    blogUrl: '#',
+    disableCurl: true
   },
   {
     id: 'llm-agent-infra',
@@ -31,20 +32,21 @@ export const PORTFOLIO_DATA: Project[] = [
       { name: 'Concurrent Agents', value: 500, unit: 'active' },
     ],
     techStack: ['Python', 'Celery', 'Pinecone', 'Docker'],
-    githubUrl: 'https://github.com/Stan370'
+    githubUrl: 'https://github.com/Stan370',
+    disableCurl: true
   },
 
   // --- TOOLS & APPS ---
   {
     id: 'tony-chat',
-    title: 'TonyChat: Context-Aware Assistant',
+    title: 'TonyChat: Multi-Tenant Agent Marketplace',
     category: ProjectCategory.TOOLS,
-    description: 'A React Native + Python assistant that builds a local knowledge graph of user interactions to provide personalized context without sending PII to cloud models.',
-    tags: ['React Native', 'Local LLM', 'GraphRAG'],
+    description: 'Designed and built a multi-tenant agent marketplace enabling users to deploy custom AI assistants with private knowledge. Supports dynamic model switching across OpenAI, Claude, and Gemini. Features secure user authentication and real-time chat history management.',
+    tags: ['Agent Marketplace', 'Multi-tenant', 'LLMs', 'Supabase'],
     imageUrl: 'https://picsum.photos/800/402',
     demoUrl: 'https://devpost.com/Stan370',
     githubUrl: 'https://github.com/Stan370',
-    techStack: ['Llama.cpp', 'Neo4j', 'TypeScript']
+    techStack: ['Vercel', 'Supabase', 'OpenAI', 'Claude', 'Gemini']
   },
   {
     id: 'vct-agent',
@@ -59,15 +61,16 @@ export const PORTFOLIO_DATA: Project[] = [
 
   // --- HACKATHONS ---
   {
-    id: 'hackathon-health',
-    title: 'NeuroSync (HackMIT Winner)',
+    id: 'whisper-trans',
+    title: 'WhisperTrans',
     category: ProjectCategory.HACKATHON,
-    description: 'Real-time EEG visualization tool using WebBluetooth and WebGL.',
-    hypothesis: 'Can we visualize focus states in browser with < 50ms latency?',
-    outcome: 'Achieved 30ms render loop. Won Best Health Tech.',
-    tags: ['WebGL', 'WebBluetooth', 'React'],
+    description: 'An AI-powered platform designed to help teachers handle multilingual classrooms effortlessly. It turns spoken lessons, story reading, or student discussions into real-time text, automatically translating them into multiple languages so every student can follow along.',
+    detailedDescription: 'The system uses modern speech models to perform speech-to-text, translation, and transcript generation in a single pipeline, making classroom content instantly accessible and reusable.\n\nUnder the hood, the platform runs a distributed inference system built with FastAPI and Whisper, optimized for low-latency transcription and translation. A Redis Streams task queue manages audio processing jobs, while memory-aware worker scheduling and containerized services allow the system to scale horizontally and adapt to resource constraints. To keep data transfer efficient across services, multilingual audio and text are encoded using FlatBuffers.\n\nThe result is a single AI platform that can transcribe lessons, translate content, generate transcripts, and make classroom knowledge accessible across languages in real time.',
+    tags: ['FastAPI', 'Whisper', 'Redis'],
     imageUrl: 'https://picsum.photos/800/404',
-    demoUrl: 'https://devpost.com/Stan370'
+    techStack: ['Python', 'FastAPI', 'Redis Streams', 'FlatBuffers', 'Whisper'],
+    disableCurl: true
+
   },
 
   // --- GAMES ---
@@ -90,23 +93,14 @@ export const PORTFOLIO_DATA: Project[] = [
     demoUrl: 'https://league-mbti-analysis.pages.dev/',
   },
   {
-    id: 'reddit-place-game',
-    title: 'Pixel War Strategy',
+    id: 'klotski',
+    title: 'Klotski / 华容道',
     category: ProjectCategory.GAMES,
-    description: 'A simulation game based on r/place. Coordinate pixel placement with bots in a simulated chaotic environment.',
-    tags: ['Canvas API', 'WebSockets', 'Rust (WASM)'],
-    imageUrl: 'https://picsum.photos/800/405',
-    demoUrl: '#',
-    githubUrl: 'https://github.com/Stan370'
-  },
-  {
-    id: 'klotski-solver',
-    title: 'Klotski Solver & UI',
-    category: ProjectCategory.GAMES,
-    description: 'A BFS-based solver for the Klotski sliding block puzzle with a smooth, animated React UI.',
-    tags: ['Algorithms', 'React', 'Framer Motion'],
+    description: 'An interactive puzzle game with real-time leaderboards and multi-language support. Implemented complex grid logic and collision detection in TypeScript. Integrated Redis for optimized leaderboard management and resolved ESM/CommonJS compatibility issues for Devvit/Webview integration.',
+    tags: ['TypeScript', 'Redis', 'Devvit', 'Puzzles'],
     imageUrl: 'https://picsum.photos/800/406',
-    githubUrl: 'https://github.com/Stan370'
+    githubUrl: 'https://github.com/Stan370',
+    techStack: ['TypeScript', 'Redis', 'Devvit', 'SVGs']
   },
 
   // --- BLOG MOCK (Mixed EN/CN) ---

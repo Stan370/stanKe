@@ -18,18 +18,20 @@ export interface Project {
   title: string;
   category: ProjectCategory;
   description: string;
+  detailedDescription?: string;
+  disableCurl?: boolean;
   tags: string[];
   imageUrl: string;
-  
+
   // Systems Specific
   architectureDiagram?: string; // URL
   metrics?: Metric[]; // For Recharts
   techStack?: string[];
-  
+
   // Hackathon Specific
   hypothesis?: string;
   outcome?: string;
-  
+
   // Links
   githubUrl?: string;
   demoUrl?: string;

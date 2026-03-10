@@ -27,10 +27,9 @@ Who am I? I'm @Stan370, a solo entrepreneur, full-stack hacker, and builder of a
 - **Description**: An autonomous agent interface for managing Valorant Champions Tour fantasy leagues. Scrapes real-time data and proposes roster changes.
 - **Stack**: Vercel AI SDK, Postgres, Tailwind
 
-### NeuroSync (HackMIT Winner)
-- **Description**: Real-time EEG visualization tool using WebBluetooth and WebGL.
-- **Hypothesis**: Can we visualize focus states in browser with < 50ms latency?
-- **Outcome**: Achieved 30ms render loop. Won Best Health Tech.
+### WhisperTrans
+- **Description**: An AI-powered platform designed to help teachers handle multilingual classrooms effortlessly. It turns spoken lessons, story reading, or student discussions into real-time text, automatically translating them into multiple languages so every student can follow along. The system uses modern speech models to perform speech-to-text, translation, and transcript generation in a single pipeline, making classroom content instantly accessible and reusable. Under the hood, the platform runs a distributed inference system built with FastAPI and Whisper. (Detailed model cards description openable)
+- **Stack**: Python, FastAPI, Redis Streams, FlatBuffers, Whisper
 
 ### Pixel War Strategy
 - **Description**: A simulation game based on r/place. Coordinate pixel placement with bots in a simulated chaotic environment.

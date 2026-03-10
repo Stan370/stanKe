@@ -49,7 +49,7 @@ const App: React.FC = () => {
               {[
                 { id: 'home', label: 'Index' },
                 { id: 'works', label: 'Projects' },
-                { id: 'blogs', label: 'Logs' },
+                { id: 'blogs', label: 'Blog' },
                 { id: 'prompts', label: 'Prompts' }
               ].map(item => (
                 <li key={item.id}>
@@ -248,7 +248,7 @@ const App: React.FC = () => {
                 },
                 {
                   title: "Creative Coding Insight",
-                  prompt: "Explain the intersection of Stan's systems engineering background and his creative projects like NeuroSync or Pixel War.",
+                  prompt: "Explain the intersection of Stan's systems engineering background and his creative projects like WhisperTrans or Pixel War.",
                   useCase: "Collaborator"
                 }
               ].map((item, idx) => (
