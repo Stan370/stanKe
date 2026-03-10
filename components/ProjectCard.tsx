@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Project, ProjectCategory } from '../types';
+import { DISABLED_CURL_IDS } from '../constants';
 import { StatsChart } from './StatsChart';
 import { Github, ExternalLink, Activity, Terminal, Gamepad2, FlaskConical, BookOpen, Copy, Check, Info } from 'lucide-react';
 import { ProjectModal } from './ProjectModal';
@@ -21,6 +22,7 @@ const CategoryIcon = ({ category }: { category: ProjectCategory }) => {
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const isCurlDisabled = DISABLED_CURL_IDS.includes(project.id);
 
   const curlCommand = `curl -X GET stan.dev/api/projects/${project.id}`;
 
@@ -95,10 +97,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         </div>
 
         <div className="mt-auto space-y-4">
-          <div className={`relative group/curl ${project.disableCurl ? 'opacity-40 cursor-not-allowed' : ''}`}>
+          <div className={`relative group/curl ${isCurlDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}>
             <div className="bg-black border border-zinc-800 rounded p-2 flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
               <code className="text-[10px] text-zinc-400 font-mono truncate">{curlCommand}</code>
-              {!project.disableCurl && (
+              {!isCurlDisabled && (
                 <button
                   onClick={copyToClipboard}
                   className="text-zinc-600 hover:text-white transition-colors flex-shrink-0"

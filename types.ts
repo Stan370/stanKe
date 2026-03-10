@@ -19,7 +19,6 @@ export interface Project {
   category: ProjectCategory;
   description: string;
   detailedDescription?: string;
-  disableCurl?: boolean;
   tags: string[];
   imageUrl: string;
 

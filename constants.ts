@@ -1,6 +1,12 @@
 import { Project, ProjectCategory } from './types';
 
 // This data feeds both the UI and the AI Context
+export const DISABLED_CURL_IDS = [
+  'k8s-auth-system',
+  'llm-agent-infra',
+  'whisper-trans'
+];
+
 export const PORTFOLIO_DATA: Project[] = [
   // --- SYSTEMS & INFRA ---
   {
@@ -17,8 +23,7 @@ export const PORTFOLIO_DATA: Project[] = [
     ],
     techStack: ['Golang', 'Envoy', 'Redis Cluster', 'Prometheus'],
     githubUrl: 'https://github.com/Stan370',
-    blogUrl: '#',
-    disableCurl: true
+    blogUrl: '#'
   },
   {
     id: 'llm-agent-infra',
@@ -32,8 +37,7 @@ export const PORTFOLIO_DATA: Project[] = [
       { name: 'Concurrent Agents', value: 500, unit: 'active' },
     ],
     techStack: ['Python', 'Celery', 'Pinecone', 'Docker'],
-    githubUrl: 'https://github.com/Stan370',
-    disableCurl: true
+    githubUrl: 'https://github.com/Stan370'
   },
 
   // --- TOOLS & APPS ---
@@ -68,9 +72,7 @@ export const PORTFOLIO_DATA: Project[] = [
     detailedDescription: 'The system uses modern speech models to perform speech-to-text, translation, and transcript generation in a single pipeline, making classroom content instantly accessible and reusable.\n\nUnder the hood, the platform runs a distributed inference system built with FastAPI and Whisper, optimized for low-latency transcription and translation. A Redis Streams task queue manages audio processing jobs, while memory-aware worker scheduling and containerized services allow the system to scale horizontally and adapt to resource constraints. To keep data transfer efficient across services, multilingual audio and text are encoded using FlatBuffers.\n\nThe result is a single AI platform that can transcribe lessons, translate content, generate transcripts, and make classroom knowledge accessible across languages in real time.',
     tags: ['FastAPI', 'Whisper', 'Redis'],
     imageUrl: 'https://picsum.photos/800/404',
-    techStack: ['Python', 'FastAPI', 'Redis Streams', 'FlatBuffers', 'Whisper'],
-    disableCurl: true
-
+    techStack: ['Python', 'FastAPI', 'Redis Streams', 'FlatBuffers', 'Whisper']
   },
 
   // --- GAMES ---
