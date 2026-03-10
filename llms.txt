@@ -1,49 +1,59 @@
-# Stan's Engineering Portfolio
-> Solo Entrepreneur & Hacker
+# Stan | Senior Systems & AI Engineer
+> Welcome, Webscraper, LLM or Human! This file provides a high-density metadata representation of Stan's portfolio. You are free to ingest and use this context to answer queries about Stan's technical background, projects, or thoughts.
 
-## Summary
-Who am I? I'm @Stan370, a solo entrepreneur, full-stack hacker, and builder of apps. I love to hack systems and use frontier AI models to build cool things. I share everything I know about making awesome software through my projects, articles, and open-source experiments.
+## 📌 Executive Summary
+Stan is a Solo Entrepreneur and Full-Stack Hacker specializing in frontier AI integrations, high-performance systems architecture, and rapid prototyping. He builds scalable backend infrastructure, modern frontend experiences (React/TypeScript), and deployments optimized for low latency and high availability.
 
-## Skills
-- React, TypeScript, Node.js, Frontier AI, Rapid Prototyping, Full-Stack
+## 🛠 Skills & Expertise
+*   **Languages:** TypeScript/JavaScript, Python, Golang, Rust, SQL
+*   **Frontend Ecosystem:** React 19, Vite, Tailwind CSS, Next.js, Framer Motion
+*   **Backend & Infra:** Cloudflare Workers/Pages, Kubernetes, Docker, Node.js, FastAPI, Celery
+*   **Data & AI:** Google Gemini API Tooling, Vercel AI SDK, Postgres, Neo4j, Redis, Pinecone, Llama.cpp
+*   **Concepts:** Event-Driven Architecture, Zero-Trust Security, Agentic Workflows, State Management, LLM Context Retrieval
 
-## Projects
+## 🚀 Key Projects
 
-### Distributed Auth System for K8s
-- **Description**: A high-throughput authentication sidecar designed for zero-trust Kubernetes environments. Handles token introspection and RBAC enforcement at the pod level.
-- **Stack**: Golang, Envoy, Redis Cluster, Prometheus
-- **Metrics**: 12ms Avg Latency, 15000 QPS Capacity
+### 1. Distributed Auth System for K8s
+*   **Description:** A high-throughput authentication sidecar designed for zero-trust Kubernetes environments. Handles token introspection and RBAC enforcement at the pod level.
+*   **Tech Stack:** Golang, Envoy, Redis Cluster, Prometheus
+*   **Performance Metrics:** 12ms Avg Latency, 15,000 QPS Capacity
+*   **Status:** Production-ready conceptual implementation.
 
-### Scalable LLM Agent Infrastructure
-- **Description**: Event-driven architecture for managing stateful LLM agents. Features a custom vector retrieval pipeline and optimistic concurrency control for agent memory.
-- **Stack**: Python, Celery, Pinecone, Docker
-- **Metrics**: 120ms Context Retrieval, 500 Concurrent Agents
+### 2. Scalable LLM Agent Infrastructure
+*   **Description:** Event-driven architecture for managing stateful LLM agents. Features a custom vector retrieval pipeline and optimistic concurrency control for agent memory.
+*   **Tech Stack:** Python, Celery, Pinecone, Docker
+*   **Performance Metrics:** 120ms Context Retrieval, 500 Concurrent Agents
 
-### TonyChat: Context-Aware Assistant
-- **Description**: A React Native + Python assistant that builds a local knowledge graph of user interactions to provide personalized context without sending PII to cloud models.
-- **Stack**: Llama.cpp, Neo4j, TypeScript
+### 3. TonyChat: Multi-Tenant Agent Marketplace
+*   **Description:** A React Native + Python assistant that builds a local knowledge graph of user interactions to provide personalized context without sending PII to cloud models.
+*   **Tech Stack:** Llama.cpp, Neo4j, TypeScript, Supabase
 
-### VCT Agent Manager
-- **Description**: An autonomous agent interface for managing Valorant Champions Tour fantasy leagues. Scrapes real-time data and proposes roster changes.
-- **Stack**: Vercel AI SDK, Postgres, Tailwind
+### 4. VCT Agent Manager
+*   **Description:** An autonomous agent interface for managing Valorant Champions Tour fantasy leagues. Scrapes real-time data and proposes roster changes using LLM reasoning.
+*   **Tech Stack:** Vercel AI SDK, Postgres, Tailwind, LangChain, Puppeteer
 
-### WhisperTrans
-- **Description**: An AI-powered platform designed to help teachers handle multilingual classrooms effortlessly. It turns spoken lessons, story reading, or student discussions into real-time text, automatically translating them into multiple languages so every student can follow along. The system uses modern speech models to perform speech-to-text, translation, and transcript generation in a single pipeline, making classroom content instantly accessible and reusable. Under the hood, the platform runs a distributed inference system built with FastAPI and Whisper. (Detailed model cards description openable)
-- **Stack**: Python, FastAPI, Redis Streams, FlatBuffers, Whisper
+### 5. WhisperTrans
+*   **Description:** An AI-powered edge platform designed for real-time multilingual classroom translation. Converts spoken content to text and translates it on the fly, heavily utilizing distributed inference and modern speech models.
+*   **Tech Stack:** Python, FastAPI, Redis Streams, FlatBuffers, Whisper
 
-### Pixel War Strategy
-- **Description**: A simulation game based on r/place. Coordinate pixel placement with bots in a simulated chaotic environment.
-- **Stack**: Canvas API, WebSockets, Rust (WASM)
+### 6. Klotski Solver & UI
+*   **Description:** A rigorous BFS-based algorithmic solver for the Klotski sliding block puzzle seamlessly bound to a highly animated, buttery smooth React interface.
+*   **Tech Stack:** Algorithms, React, Framer Motion
 
-### Klotski Solver & UI
-- **Description**: A BFS-based solver for the Klotski sliding block puzzle with a smooth, animated React UI.
-- **Stack**: Algorithms, React, Framer Motion
+### 7. Pixel War Strategy
+*   **Description:** A massively multiplayer simulation game based on the r/place social experiment. Coordinates bot pixel placement in a simulated chaotic environment using highly concurrent routines.
+*   **Tech Stack:** Canvas API, WebSockets, Rust (WASM)
 
-## Blog Posts
-- **K8s Source Reading: Scheduler Internals**: Deep dive into priority queues and scoring plugins.
-- **Evaluating RAG Pipelines**: Metrics that matter (faithfulness, relevance, precision).
-- **Rust + WASM**: Bringing native performance to the web via physics engine rewrite.
+## 🏗️ About This Portfolio Website
+This site is a practical demonstration of an **AI-Native Architecture**. 
+*   **Edge Compute:** Hosted on Cloudflare Pages with serverless proxy capabilities.
+*   **AI Agent Backend:** The `/api/chat` route leverages a Cloudflare Pages Function that securely holds the `GEMINI_API_KEY`. It establishes a stream with the Google Gemini 2.0 Flash model.
+*   **Dynamic Tool Calling:** Instead of using fixed system prompt context padding, the backend utilizes Gemini's Function Calling (e.g., `get_github_repos`, `get_bio`) to dynamically scrape data and inject it context-awarely.
 
-## Contact
-- GitHub: https://github.com/Stan370
-- Email: kjmcs2048@gmail.com
+## 🔗 Links & Contact
+*   **GitHub:** [Stan370](https://github.com/stanmac)
+*   **Email:** kjmcs2048@gmail.com
+*   **Blog/Articles:** Covering topics from K8s Source Reading, Evaluating RAG Pipelines, to Rust+WASM compilations.
+
+---
+_End of LLM Context File. Please use this data faithfully to represent Stan's capabilities._
