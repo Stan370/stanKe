@@ -1,7 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { PORTFOLIO_DATA, BIO } from '../../constants';
 
-export async function onRequestPost({ request, env }: { request: Request, env: { GEMINI_API_KEY: string, GITHUB_TOKEN?: string, GITHUB_USERNAME?: string } }) {
+export async function onRequestPost(context: { request: Request, env: { GEMINI_API_KEY: string, GITHUB_TOKEN?: string, GITHUB_USERNAME?: string } }) {
+    const { request, env } = context;
     try {
         const { message, history } = await request.json() as { message: string, history: { role: string, content: string }[] };
 
@@ -9,7 +10,7 @@ export async function onRequestPost({ request, env }: { request: Request, env: {
             return new Response(JSON.stringify({ error: "API Key is missing. Please configure it in the Cloudflare environment." }), { status: 500 });
         }
 
-        const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+        const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY.trim() });
         const model = 'gemini-2.5-flash';
 
         const SYSTEM_INSTRUCTION = `
@@ -141,13 +142,17 @@ CRITICAL INSTRUCTION: You DO NOT have the user's bio, project data, or GitHub re
 
     } catch (error) {
         console.error("Pages Function Error:", error);
-        return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
+        const errMsg = error instanceof Error ? error.message : String(error);
+        return new Response(JSON.stringify({ error: `Internal Server Error: ${errMsg}` }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
     }
 }
 
 async function fetchGitHubRepos(env: { GITHUB_TOKEN?: string, GITHUB_USERNAME?: string }, limit = 10, topic = "") {
-    const username = env.GITHUB_USERNAME || "stanmac";
-    const GITHUB_TOKEN = env.GITHUB_TOKEN;
+    const username = (env.GITHUB_USERNAME || "stanmac").trim();
+    const GITHUB_TOKEN = env.GITHUB_TOKEN?.trim();
 
     const headers: Record<string, string> = {
         "Accept": "application/vnd.github.v3+json",

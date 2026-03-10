@@ -11,7 +11,7 @@ export const PORTFOLIO_DATA: Project[] = [
   // --- SYSTEMS & INFRA ---
   {
     id: 'k8s-auth-system',
-    title: 'Distributed Auth System for K8s',
+    title: 'Exploring Linux Through Docker Containers',
     category: ProjectCategory.SYSTEMS,
     description: 'A high-throughput authentication sidecar designed for zero-trust Kubernetes environments. Handles token introspection and RBAC enforcement at the pod level.',
     tags: ['Go', 'Kubernetes', 'gRPC', 'OIDC'],
@@ -23,7 +23,7 @@ export const PORTFOLIO_DATA: Project[] = [
     ],
     techStack: ['Golang', 'Envoy', 'Redis Cluster', 'Prometheus'],
     githubUrl: 'https://github.com/Stan370',
-    blogUrl: '#'
+    blogUrl: 'https://stan370.github.io/2024/06/14/Dockerlinux/'
   },
   {
     id: 'llm-agent-infra',
@@ -37,7 +37,7 @@ export const PORTFOLIO_DATA: Project[] = [
       { name: 'Concurrent Agents', value: 500, unit: 'active' },
     ],
     techStack: ['Python', 'Celery', 'Pinecone', 'Docker'],
-    githubUrl: 'https://github.com/Stan370'
+    githubUrl: 'https://stan370.github.io'
   },
 
   // --- TOOLS & APPS ---
