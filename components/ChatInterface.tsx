@@ -1,10 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Bot, User, Sparkles, Terminal as TerminalIcon, ChevronRight } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, User, Terminal as TerminalIcon, ChevronRight, Database } from 'lucide-react';
 import { streamChatResponse } from '../services/geminiService';
-import { ChatMessage } from '../types';
+import { retrieveRelevant, keywordRetrieve } from '../services/ragService';
+import { ChatMessage, DocumentChunk } from '../types';
 
-export const ChatInterface: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(true); // Default open for AI-native feel
+interface ChatInterfaceProps {
+  ragChunks?: DocumentChunk[];
+}
+
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ ragChunks = [] }) => {
+  const [isOpen, setIsOpen] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'model', text: "SYSTEM_READY: I am Stan's portfolio agent. I am optimized for technical queries. How can I assist your traversal?" }
   ]);
@@ -30,9 +35,24 @@ export const ChatInterface: React.FC = () => {
     setIsTyping(true);
 
     try {
+      // Build RAG context if we have chunks
+      let context: string | undefined;
+      if (ragChunks.length > 0) {
+        const hasEmbeddings = ragChunks.some(c => c.embedding && c.embedding.length > 0);
+        const relevant = hasEmbeddings
+          ? await retrieveRelevant(userMsg, ragChunks, 3)
+          : keywordRetrieve(userMsg, ragChunks, 3);
+
+        if (relevant.length > 0) {
+          context = relevant.map((c, i) =>
+            `[Doc: ${c.filename}, chunk ${i + 1}]\n${c.text}`
+          ).join('\n\n');
+        }
+      }
+
       setMessages(prev => [...prev, { role: 'model', text: '' }]);
-      
-      const stream = streamChatResponse([], userMsg);
+
+      const stream = streamChatResponse([], userMsg, context);
       let fullResponse = '';
 
       for await (const chunk of stream) {
@@ -55,11 +75,11 @@ export const ChatInterface: React.FC = () => {
 
   if (!isOpen) {
     return (
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-8 right-8 bg-white text-black p-4 rounded-full shadow-2xl hover:scale-110 transition-transform z-50 border border-zinc-200"
       >
-        <Sparkles size={24} />
+        <MessageSquare size={24} />
       </button>
     );
   }
@@ -71,12 +91,18 @@ export const ChatInterface: React.FC = () => {
         <div className="flex items-center gap-2">
           <TerminalIcon size={14} className="text-zinc-500" />
           <span className="text-zinc-300 font-bold uppercase tracking-widest">Agent_Terminal v1.0</span>
+          {ragChunks.length > 0 && (
+            <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 bg-emerald-950 border border-emerald-800 text-emerald-400 rounded font-mono ml-1">
+              <Database size={9} />
+              {ragChunks.length} chunks
+            </span>
+          )}
         </div>
         <button onClick={() => setIsOpen(false)} className="text-zinc-600 hover:text-white transition-colors">
           <X size={16} />
         </button>
       </div>
-      
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
         {messages.map((msg, idx) => (
@@ -103,12 +129,12 @@ export const ChatInterface: React.FC = () => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a command or query..."
+            placeholder={ragChunks.length > 0 ? "Query with document context..." : "Type a command or query..."}
             className="flex-1 bg-transparent text-zinc-300 focus:outline-none"
             autoFocus
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={isTyping || !input.trim()}
             className="text-zinc-600 hover:text-white disabled:opacity-30 transition-colors"
           >
@@ -116,7 +142,7 @@ export const ChatInterface: React.FC = () => {
           </button>
         </div>
         <div className="mt-2 text-[8px] text-zinc-700 uppercase tracking-widest text-center">
-          Press Enter to execute
+          {ragChunks.length > 0 ? `RAG: ${ragChunks.length} chunks active` : 'Press Enter to execute'}
         </div>
       </form>
     </div>

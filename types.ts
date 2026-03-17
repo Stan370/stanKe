@@ -42,3 +42,10 @@ export interface ChatMessage {
   text: string;
   isThinking?: boolean;
 }
+
+export interface DocumentChunk {
+  id: string;
+  filename: string;
+  text: string;
+  embedding?: number[];
+}

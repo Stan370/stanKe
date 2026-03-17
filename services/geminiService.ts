@@ -1,11 +1,19 @@
-export const streamChatResponse = async function* (history: { role: string, content: string }[], newMessage: string) {
+export const streamChatResponse = async function* (
+  history: { role: string, content: string }[],
+  newMessage: string,
+  context?: string
+) {
   try {
+    const messageWithContext = context
+      ? `[RELEVANT CONTEXT FROM USER DOCUMENTS]\n${context}\n[END CONTEXT]\n\nUser query: ${newMessage}`
+      : newMessage;
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message: newMessage, history })
+      body: JSON.stringify({ message: messageWithContext, history })
     });
 
     if (!response.ok) {

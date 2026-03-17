@@ -2,15 +2,18 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { PORTFOLIO_DATA, BIO } from './constants';
 import { ProjectCard } from './components/ProjectCard';
 import { ChatInterface } from './components/ChatInterface';
-import { ProjectCategory } from './types';
-import { Terminal, Github, Linkedin, Mail, ArrowRight, BookOpen, Layers, Zap, Clock, Command, Search, Cpu, Globe, Braces } from 'lucide-react';
+import { DocUploader } from './components/DocUploader';
+import { PromptLibrary } from './components/PromptLibrary';
+import { ProjectCategory, DocumentChunk } from './types';
+import { Terminal, Github, ArrowRight, Command, Cpu, Braces, Database } from 'lucide-react';
 
-type ViewState = 'home' | 'works' | 'blogs' | 'prompts';
+type ViewState = 'home' | 'works' | 'blogs' | 'docs';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [scrolled, setScrolled] = useState(false);
+  const [ragChunks, setRagChunks] = useState<DocumentChunk[]>([]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -50,7 +53,7 @@ const App: React.FC = () => {
                 { id: 'home', label: 'Index' },
                 { id: 'works', label: 'Projects' },
                 { id: 'blogs', label: 'Blog' },
-                { id: 'prompts', label: 'Prompts' }
+                { id: 'docs', label: 'Docs' }
               ].map(item => (
                 <li key={item.id}>
                   <button
@@ -59,6 +62,9 @@ const App: React.FC = () => {
                   >
                     {currentView === item.id && <span className="text-accent">●</span>}
                     {item.label}
+                    {item.id === 'docs' && ragChunks.length > 0 && (
+                      <span className="ml-1 text-[8px] px-1 bg-emerald-950 border border-emerald-800 text-emerald-400 rounded">ON</span>
+                    )}
                   </button>
                 </li>
               ))}
@@ -224,65 +230,33 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* VIEW: PROMPTS */}
-        {currentView === 'prompts' && (
+        {/* VIEW: DOCS + PROMPTS */}
+        {currentView === 'docs' && (
           <div className="max-w-3xl mx-auto px-6">
-            <header className="mb-16">
-              <h2 className="text-2xl font-bold text-white mb-2">Prompt Library</h2>
-              <p className="text-zinc-500 text-sm font-mono uppercase tracking-wider">
-                Optimized instructions for interacting with this portfolio.
-              </p>
-            </header>
+            <DocUploader
+              onChunksReady={setRagChunks}
+              chunkCount={ragChunks.length}
+            />
 
-            <div className="space-y-8">
-              {[
-                {
-                  title: "Summarize Experience",
-                  prompt: "Analyze Stan's projects and summarize his core expertise in distributed systems. Focus on specific metrics and technologies used.",
-                  useCase: "Recruiter / Technical Lead"
-                },
-                {
-                  title: "Tech Stack Evaluation",
-                  prompt: "List all projects where Stan used Golang and Kubernetes. For each project, explain his specific contribution and the scale of the system.",
-                  useCase: "Technical Interviewer"
-                },
-                {
-                  title: "Creative Coding Insight",
-                  prompt: "Explain the intersection of Stan's systems engineering background and his creative projects like WhisperTrans or Pixel War.",
-                  useCase: "Collaborator"
-                }
-              ].map((item, idx) => (
-                <div key={idx} className="p-6 bg-zinc-900 border border-zinc-800 rounded-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">{item.title}</h3>
-                    <span className="text-[10px] font-mono text-zinc-600">{item.useCase}</span>
-                  </div>
-                  <div className="relative group">
-                    <pre className="text-xs text-zinc-400 bg-black p-4 rounded border border-zinc-800 whitespace-pre-wrap font-mono leading-relaxed">
-                      {item.prompt}
-                    </pre>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(item.prompt);
-                      }}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-800 text-zinc-300 text-[10px] px-2 py-1 rounded hover:bg-zinc-700"
-                    >
-                      COPY_PROMPT
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="mt-16 pt-12 border-t border-zinc-800">
+              <header className="mb-12">
+                <h2 className="text-2xl font-bold text-white mb-2">Prompts</h2>
+                <p className="text-zinc-500 text-sm font-mono uppercase tracking-wider">
+                  Optimized prompts for interacting with this portfolio.
+                </p>
+              </header>
+              <PromptLibrary />
             </div>
           </div>
         )}
       </main>
 
-      <ChatInterface />
+      <ChatInterface ragChunks={ragChunks} />
 
       <footer className="border-t border-zinc-900 py-12 mt-auto">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.2em]">
-            &copy; 2026 STAN.DEV / ALL_RIGHTS_RESERVED / BUILT_FOR_AGENTS
+            &copy; 2026 STAN.DEV / ALL_RIGHTS_RESERVED
           </div>
           <div className="flex gap-6 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
             <a href="https://github.com/Stan370" className="hover:text-white transition-colors">GitHub</a>
