@@ -1,10 +1,10 @@
 {
   "name": "stan's-engineering-portfolio",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "npx wrangler pages dev -- npx vite dev --port 3000",
+    "dev": "vite",
     "build": "vite build && npx wrangler pages deploy dist",
     "preview": "vite preview",
     "lint": "tsc --noEmit"

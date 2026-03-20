@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, User, Terminal as TerminalIcon, ChevronRight, Database } from 'lucide-react';
 import { streamChatResponse } from '../services/geminiService';
-import { retrieveRelevant, keywordRetrieve } from '../services/ragService';
-import { ChatMessage, DocumentChunk } from '../types';
+import { ChatMessage } from '../types';
 
 interface ChatInterfaceProps {
-  ragChunks?: DocumentChunk[];
+  /** True when the user has uploaded docs to R2; vectors live server-side */
+  docsUploaded?: boolean;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ ragChunks = [] }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ docsUploaded = false }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'model', text: "SYSTEM_READY: I am Stan's portfolio agent. I am optimized for technical queries. How can I assist your traversal?" }
@@ -35,24 +35,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ ragChunks = [] }) 
     setIsTyping(true);
 
     try {
-      // Build RAG context if we have chunks
-      let context: string | undefined;
-      if (ragChunks.length > 0) {
-        const hasEmbeddings = ragChunks.some(c => c.embedding && c.embedding.length > 0);
-        const relevant = hasEmbeddings
-          ? await retrieveRelevant(userMsg, ragChunks, 3)
-          : keywordRetrieve(userMsg, ragChunks, 3);
-
-        if (relevant.length > 0) {
-          context = relevant.map((c, i) =>
-            `[Doc: ${c.filename}, chunk ${i + 1}]\n${c.text}`
-          ).join('\n\n');
-        }
-      }
-
+      // Context retrieval now happens server-side via CF AI Search.
+      // The /api/chat Worker calls env.AI.autorag().search() internally.
       setMessages(prev => [...prev, { role: 'model', text: '' }]);
 
-      const stream = streamChatResponse([], userMsg, context);
+      const stream = streamChatResponse([], userMsg);
       let fullResponse = '';
 
       for await (const chunk of stream) {
@@ -91,10 +78,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ ragChunks = [] }) 
         <div className="flex items-center gap-2">
           <TerminalIcon size={14} className="text-zinc-500" />
           <span className="text-zinc-300 font-bold uppercase tracking-widest">Agent_Terminal v1.0</span>
-          {ragChunks.length > 0 && (
+          {docsUploaded && (
             <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 bg-emerald-950 border border-emerald-800 text-emerald-400 rounded font-mono ml-1">
               <Database size={9} />
-              {ragChunks.length} chunks
+              R2 indexed
             </span>
           )}
         </div>
@@ -129,7 +116,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ ragChunks = [] }) 
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={ragChunks.length > 0 ? "Query with document context..." : "Type a command or query..."}
+            placeholder={docsUploaded ? "Query with uploaded doc context..." : "Type a command or query..."}
             className="flex-1 bg-transparent text-zinc-300 focus:outline-none"
             autoFocus
           />
@@ -142,7 +129,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ ragChunks = [] }) 
           </button>
         </div>
         <div className="mt-2 text-[8px] text-zinc-700 uppercase tracking-widest text-center">
-          {ragChunks.length > 0 ? `RAG: ${ragChunks.length} chunks active` : 'Press Enter to execute'}
+          {docsUploaded ? 'RAG: CF AI Search active' : 'Press Enter to execute'}
         </div>
       </form>
     </div>

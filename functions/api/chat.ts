@@ -1,10 +1,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { PORTFOLIO_DATA, BIO } from '../../constants';
 
-export async function onRequestPost(context: { request: Request, env: { GEMINI_API_KEY: string, GITHUB_TOKEN?: string, GITHUB_USERNAME?: string } }) {
+// ── IMPORTANT: must match the AI Search instance name in the CF Dashboard ──
+const AI_SEARCH_INSTANCE = "stanke-rag";
+
+export async function onRequestPost(context: { request: Request, env: { GEMINI_API_KEY: string, GITHUB_TOKEN?: string, GITHUB_USERNAME?: string, AI?: any } }) {
     const { request, env } = context;
     try {
         const { message, history } = await request.json() as { message: string, history: { role: string, content: string }[] };
+
+        // ── RAG: fetch relevant context from CF AI Search (if configured) ──────────
+        const ragContext = await getDocContext(env, message);
 
         if (!env.GEMINI_API_KEY) {
             return new Response(JSON.stringify({ error: "API Key is missing. Please configure it in the Cloudflare environment." }), { status: 500 });
@@ -32,6 +38,7 @@ Rules:
 5. If asked a casual or unstructured question, just answer it naturally based on your understanding of Stan.
 
 CRITICAL INSTRUCTION: You DO NOT have the user's bio, project data, or GitHub repositories in this prompt. You MUST use the tools provided to fetch 'bio', 'projects', or 'github_repos' information if the user asks about them.
+${ragContext ? `\n[RELEVANT CONTEXT FROM USER DOCUMENTS]\n${ragContext}\n[END CONTEXT]` : ''}
 `;
 
         // Define the tools
@@ -213,4 +220,26 @@ function streamResponse(resultStream: AsyncGenerator<{ text?: string }, void, un
             "Connection": "keep-alive"
         }
     });
+}
+
+// ── CF AI Search retrieval ─────────────────────────────────────────────────────
+
+async function getDocContext(env: { AI?: any }, query: string): Promise<string> {
+    if (!env.AI) return ""; // binding not present in local dev — degrade gracefully
+    try {
+        const result = await env.AI.autorag(AI_SEARCH_INSTANCE).search({
+            query,
+            max_num_results: 5,
+            reranking: { enabled: true, model: "@cf/baai/bge-reranker-base" },
+        });
+        const chunks: string[] = (result?.data ?? []).map((item: any) => {
+            const text = item.content?.[0]?.text ?? item.text ?? "";
+            const src = item.filename ?? item.source ?? "";
+            return src ? `[${src}]\n${text}` : text;
+        });
+        return chunks.filter(Boolean).join("\n\n---\n\n");
+    } catch {
+        // Index empty or not yet ready — return empty so chat still works
+        return "";
+    }
 }

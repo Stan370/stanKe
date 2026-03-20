@@ -4,7 +4,7 @@ import { ProjectCard } from './components/ProjectCard';
 import { ChatInterface } from './components/ChatInterface';
 import { DocUploader } from './components/DocUploader';
 import { PromptLibrary } from './components/PromptLibrary';
-import { ProjectCategory, DocumentChunk } from './types';
+import { ProjectCategory } from './types';
 import { Terminal, Github, ArrowRight, Command, Cpu, Braces, Database } from 'lucide-react';
 
 type ViewState = 'home' | 'works' | 'blogs' | 'docs';
@@ -13,7 +13,8 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [scrolled, setScrolled] = useState(false);
-  const [ragChunks, setRagChunks] = useState<DocumentChunk[]>([]);
+  // True once a user uploads at least one file to R2 (vectors live server-side)
+  const [docsUploaded, setDocsUploaded] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -62,7 +63,7 @@ const App: React.FC = () => {
                   >
                     {currentView === item.id && <span className="text-accent">●</span>}
                     {item.label}
-                    {item.id === 'docs' && ragChunks.length > 0 && (
+                    {item.id === 'docs' && docsUploaded && (
                       <span className="ml-1 text-[8px] px-1 bg-emerald-950 border border-emerald-800 text-emerald-400 rounded">ON</span>
                     )}
                   </button>
@@ -234,8 +235,7 @@ const App: React.FC = () => {
         {currentView === 'docs' && (
           <div className="max-w-3xl mx-auto px-6">
             <DocUploader
-              onChunksReady={setRagChunks}
-              chunkCount={ragChunks.length}
+              onUploadComplete={() => setDocsUploaded(true)}
             />
 
             <div className="mt-16 pt-12 border-t border-zinc-800">
@@ -251,7 +251,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <ChatInterface ragChunks={ragChunks} />
+      <ChatInterface docsUploaded={docsUploaded} />
 
       <footer className="border-t border-zinc-900 py-12 mt-auto">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">

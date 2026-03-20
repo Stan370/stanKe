@@ -43,9 +43,11 @@ export interface ChatMessage {
   isThinking?: boolean;
 }
 
-export interface DocumentChunk {
-  id: string;
-  filename: string;
-  text: string;
-  embedding?: number[];
+// DocumentChunk removed — vectors are now persisted server-side in Cloudflare
+// Vectorize via the AI Search managed pipeline (R2 → AutoRAG → Vectorize).
+// No client-side embedding state is needed.
+
+export interface UploadedFile {
+  name: string;
+  size: string;
 }
