@@ -3,12 +3,117 @@ import { MessageSquare, X, Send, Bot, User, Terminal as TerminalIcon, ChevronRig
 import { streamChatResponse } from '../services/geminiService';
 import { ChatMessage } from '../types';
 
+type LogEvent = { type: string; msg: string; model: number };
+
+const WATERFALL_MODELS = [
+  { name: "gemini-3-flash-preview", short: "gemini-3-flash" },
+  { name: "gemini-2.5-flash", short: "gemini-2.5-flash" },
+  { name: "gemini-3.1-flash-lite-preview", short: "gemini-3.1-lite" },
+  { name: "gemini-2.5-flash-lite", short: "gemini-2.5-lite" },
+  { name: "gemini-2.0-flash", short: "gemini-2.0-flash" }
+];
+
 interface ChatInterfaceProps {
   /** True when the user has uploaded docs to R2; vectors live server-side */
   docsUploaded?: boolean;
 }
 
-// ── Error metadata map ───────────────────────────────────────────────────────
+// ── Routing Animation UI ─────────────────────────────────────────────────────
+const RoutingUI: React.FC = () => {
+  const [currentModel, setCurrentModel] = useState(0);
+
+  // Auto-animate the model cycling
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentModel(prev => (prev + 1) % WATERFALL_MODELS.length);
+    }, 1500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const attemptText = `attempt ${Math.max(1, currentModel + 1)} / ${WATERFALL_MODELS.length}`;
+  const toolName = '';
+  const isDone = false;
+
+  return (
+    <div className="py-2 font-mono text-[12px] border-zinc-800 animate-in fade-in duration-300">
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="relative w-5 h-5 shrink-0">
+          {!isDone ? (
+            <svg className="w-5 h-5 animate-spin" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="8" stroke="rgb(63 63 70)" strokeWidth="2" />
+              <path d="M10 2 A8 8 0 0 1 18 10" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="8" fill="rgb(22 197 94 / 0.15)" stroke="#22c55e" strokeWidth="0.5" />
+              <path d="M6 10 L9 13 L14 7" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </div>
+        <div>
+          <div className="font-medium text-[13px] text-zinc-200 font-sans tracking-tight">
+            {isDone ? 'Done' : currentModel >= 0 ? `Using: ${WATERFALL_MODELS[currentModel]?.short || 'model'}` : 'Routing request…'}
+          </div>
+          <div className="text-[11px] text-zinc-500 font-sans mt-0.5">POST /api/chat</div>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          {toolName && <span className="text-[11px] text-blue-400 font-sans animate-pulse">{toolName}</span>}
+          <div className="bg-zinc-900 border border-zinc-800 rounded px-2 py-0.5 text-[10px] text-zinc-400 font-sans uppercase tracking-widest">
+            {attemptText}
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="h-[2px] bg-zinc-800 rounded-sm overflow-hidden mb-4">
+        <div
+          className="h-full bg-blue-500 rounded-sm transition-all duration-500 ease-out"
+          style={{ width: isDone ? '100%' : `${((currentModel + 1) / WATERFALL_MODELS.length) * 100}%` }}
+        />
+      </div>
+
+      {/* Model track */}
+      <div className="flex gap-1.5 mb-4 overflow-hidden">
+        {WATERFALL_MODELS.map((m, i) => {
+          // If a model is before currentModel, treat it as "failed" (error)
+          // If it is currentModel, treat it as "active"
+          // If it is after, treat it as "idle"
+          let state = 'idle';
+          if (i < currentModel) state = 'error';
+          else if (i === currentModel) state = 'active';
+
+          let bg = 'opacity-30 border-zinc-800 bg-transparent';
+          let statusText = 'idle';
+          let statusColor = 'text-zinc-600';
+
+          if (state === 'active') {
+            bg = 'opacity-100 bg-blue-950/20 border-blue-900/50';
+            statusText = '● active';
+            statusColor = 'text-blue-400';
+          } else if (state === 'error') {
+            bg = 'opacity-100 bg-red-950/20 border-red-900/50';
+            statusText = '✕ 429 rate limit';
+            statusColor = 'text-red-400';
+          }
+
+          return (
+            <div key={i} className={`flex-1 min-w-0 border rounded px-1.5 py-1.5 transition-all duration-300 ${bg}`}>
+              <div className="text-[9px] text-zinc-500 mb-0.5 font-sans">model {i + 1}</div>
+              <div className="text-[10px] font-medium text-zinc-200 whitespace-nowrap overflow-hidden text-ellipsis leading-tight tracking-tight">{m.short}</div>
+              <div className={`text-[9px] mt-0.5 font-sans ${statusColor}`}>{statusText}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Removed Log Console as requested by user */}
+
+    </div>
+  );
+};
+
 type ErrorEntry = {
   label: string;
   color: 'red' | 'orange' | 'yellow' | 'zinc';
@@ -57,13 +162,75 @@ function renderErrorCard(entry: ErrorEntry, message: string) {
       <div className={`font-bold mb-1 flex items-center gap-2 text-zinc-200`}>
         <span className={c.icon}>⚠</span> {entry.label}
       </div>
-      <div className={`${c.msg} font-mono text-[10px] mb-2`}>{message}</div>
       <div className={`${c.fix} text-xs border-t ${c.divider} pt-2 mt-2`}>
         <strong>Suggested Fix:</strong> {entry.fix}
       </div>
     </div>
   );
 }
+
+// ── CodeCard ─────────────────────────────────────────────────────────────────
+const LANG_COLORS: Record<string, string> = {
+  json: 'text-yellow-400',
+  typescript: 'text-blue-400',
+  javascript: 'text-yellow-300',
+  ts: 'text-blue-400',
+  js: 'text-yellow-300',
+  bash: 'text-green-400',
+  sh: 'text-green-400',
+  python: 'text-sky-400',
+  py: 'text-sky-400',
+  go: 'text-cyan-400',
+  rust: 'text-orange-400',
+  sql: 'text-purple-400',
+  html: 'text-red-400',
+  css: 'text-pink-400',
+};
+
+const CodeCard: React.FC<{ lang: string; code: string; blockKey: string }> = ({ lang, code, blockKey }) => {
+  const [copied, setCopied] = React.useState(false);
+  const lines = code.split('\n');
+  const dotColor = LANG_COLORS[lang.toLowerCase()] ?? 'text-zinc-500';
+  const label = lang || 'text';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div key={blockKey} className="my-3 rounded-md border border-zinc-800 overflow-hidden text-[10px] shadow-md">
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-900 border-b border-zinc-800">
+        <div className="flex items-center gap-2">
+          <span className={`${dotColor} text-[8px]`}>●</span>
+          <span className="font-mono text-zinc-400 uppercase tracking-widest text-[9px]">{label}</span>
+        </div>
+        <button
+          onClick={handleCopy}
+          className={`font-mono text-[9px] uppercase tracking-widest transition-colors ${copied ? 'text-green-400' : 'text-zinc-600 hover:text-zinc-300'
+            }`}
+        >
+          {copied ? '✓ copied' : 'copy'}
+        </button>
+      </div>
+      {/* Body: line numbers + code */}
+      <div className="flex bg-zinc-950 overflow-x-auto">
+        {/* Line numbers */}
+        <div className="select-none py-3 px-2 text-right text-zinc-700 border-r border-zinc-800 min-w-[2rem] leading-relaxed">
+          {lines.map((_, i) => (
+            <div key={i}>{i + 1}</div>
+          ))}
+        </div>
+        {/* Code */}
+        <pre className="flex-1 p-3 text-zinc-300 font-mono leading-relaxed whitespace-pre break-words overflow-x-auto">
+          {code}
+        </pre>
+      </div>
+    </div>
+  );
+};
 
 const MessageFormatter: React.FC<{ text: string }> = ({ text }) => {
   // 1. Try to extract and parse a JSON error object
@@ -81,9 +248,8 @@ const MessageFormatter: React.FC<{ text: string }> = ({ text }) => {
         const entry =
           GEMINI_ERRORS[status] ??
           (code === 404 ? GEMINI_ERRORS.NOT_FOUND :
-            code === 429 ? GEMINI_ERRORS.RESOURCE_EXHAUSTED :
-              code === 499 ? GEMINI_ERRORS.CANCELLED :
-                code === 500 ? GEMINI_ERRORS.INTERNAL : null);
+            code === 499 ? GEMINI_ERRORS.CANCELLED :
+              code === 500 ? GEMINI_ERRORS.INTERNAL : null);
 
         if (entry) return renderErrorCard(entry, msg);
 
@@ -103,16 +269,9 @@ const MessageFormatter: React.FC<{ text: string }> = ({ text }) => {
   if (/not found/i.test(text) && /404/.test(text)) {
     return renderErrorCard(GEMINI_ERRORS.NOT_FOUND, text.replace(/^Error:\s*/i, ''));
   }
-  if (/quota|rate.?limit|resource.?exhausted|429/i.test(text)) {
-    return renderErrorCard(GEMINI_ERRORS.RESOURCE_EXHAUSTED, text.replace(/^Error:\s*/i, ''));
-  }
   if (/cancelled|canceled|499/i.test(text)) {
     return renderErrorCard(GEMINI_ERRORS.CANCELLED, text.replace(/^Error:\s*/i, ''));
   }
-
-
-
-  // ── Block-aware renderer ───────────────────────────────────────────────────
   const blocks: React.ReactNode[] = [];
   // Regex: split on fenced code blocks (```lang\n...```)
   const fenceRe = /```(\w*)\n([\s\S]*?)```/g;
@@ -121,19 +280,82 @@ const MessageFormatter: React.FC<{ text: string }> = ({ text }) => {
 
   const renderInline = (content: string, key: string) => {
     if (!content.trim()) return null;
+
+    const lines = content.split('\n');
+    const nodes: React.ReactNode[] = [];
+    let listItems: React.ReactNode[] = [];
+
+    const flushList = () => {
+      if (listItems.length > 0) {
+        nodes.push(
+          <ul key={`ul-${nodes.length}`} className="my-2 space-y-1 ml-4 list-disc marker:text-zinc-600">
+            {listItems}
+          </ul>
+        );
+        listItems = [];
+      }
+    };
+
+    const parseSegments = (text: string) => {
+      // Split by **bold** AND [link](url)
+      const parts = text.split(/(\*\*.*?\*\*|\[.*?\]\(.*?\))/g);
+      return parts.map((part, j) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={j} className="text-zinc-200 font-semibold">{part.slice(2, -2)}</strong>;
+        }
+        const linkMatch = part.match(/^\[(.*?)\]\((.*?)\)$/);
+        if (linkMatch) {
+          return (
+            <a key={j} href={linkMatch[2]} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">
+              {linkMatch[1]}
+            </a>
+          );
+        }
+        return <span key={j}>{part}</span>;
+      });
+    };
+
+    lines.forEach((line, i) => {
+      const trimmed = line.trim();
+      // Headers (e.g. "### Title")
+      const headerMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
+      if (headerMatch) {
+        flushList();
+        const level = headerMatch[1].length;
+        const sizeClass = level === 1 ? 'text-lg' : level === 2 ? 'text-base' : 'text-sm';
+        nodes.push(
+          <div key={i} className={`font-bold text-zinc-100 mt-4 mb-2 ${sizeClass}`}>
+            {parseSegments(headerMatch[2])}
+          </div>
+        );
+        return;
+      }
+      if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+        listItems.push(
+          <li key={i} className="text-zinc-300">
+            {parseSegments(trimmed.slice(2))}
+          </li>
+        );
+        return;
+      }
+      // Normal text lines
+      flushList();
+      if (trimmed) {
+        nodes.push(
+          <div key={i} className="mb-1">
+            {parseSegments(line)}
+          </div>
+        );
+      } else {
+        nodes.push(<div key={i} className="h-2" />);
+      }
+    });
+
+    flushList();
+
     return (
       <div key={key} className="leading-relaxed">
-        {content.split('\n').map((line, i, arr) => (
-          <React.Fragment key={i}>
-            {line.split(/(\*\*.*?\*\*)/g).map((part, j) => {
-              if (part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={j} className="text-zinc-200 font-semibold">{part.slice(2, -2)}</strong>;
-              }
-              return <span key={j}>{part}</span>;
-            })}
-            {i < arr.length - 1 && <br />}
-          </React.Fragment>
-        ))}
+        {nodes}
       </div>
     );
   };
@@ -151,24 +373,8 @@ const MessageFormatter: React.FC<{ text: string }> = ({ text }) => {
       try { code = JSON.stringify(JSON.parse(code), null, 2); } catch (_) { }
     }
 
-    const langLabel = lang || 'code';
     blocks.push(
-      <div key={`code-${match.index}`} className="my-3 rounded border border-zinc-800 overflow-hidden text-[10px]">
-        {/* Header bar */}
-        <div className="flex items-center justify-between px-3 py-1 bg-zinc-900 border-b border-zinc-800">
-          <span className="font-mono text-zinc-500 uppercase tracking-widest">{langLabel}</span>
-          <button
-            onClick={() => navigator.clipboard.writeText(code)}
-            className="text-zinc-600 hover:text-zinc-300 transition-colors text-[9px] uppercase tracking-widest"
-          >
-            copy
-          </button>
-        </div>
-        {/* Code body */}
-        <pre className="p-3 overflow-x-auto text-zinc-300 font-mono leading-relaxed whitespace-pre-wrap break-words bg-zinc-950">
-          {code}
-        </pre>
-      </div>
+      <CodeCard key={`code-${match.index}`} lang={lang} code={code} blockKey={`code-${match.index}`} />
     );
 
     lastIndex = match.index + match[0].length;
@@ -189,6 +395,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ docsUploaded = fal
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [agentLogs, setAgentLogs] = useState<LogEvent[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -209,21 +416,18 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ docsUploaded = fal
     setIsTyping(true);
 
     try {
-      // Context retrieval now happens server-side via CF AI Search.
-      // The /api/chat Worker calls env.AI.autorag().search() internally.
       setMessages(prev => [...prev, { role: 'model', text: '' }]);
 
       const stream = streamChatResponse([], userMsg);
       let fullResponse = '';
+      let buffer = '';
 
-      for await (const chunk of stream) {
-        fullResponse += chunk;
+      for await (const raw of stream) {
+        buffer += raw;
         setMessages(prev => {
           const newHistory = [...prev];
           const lastMsg = newHistory[newHistory.length - 1];
-          if (lastMsg.role === 'model') {
-            lastMsg.text = fullResponse;
-          }
+          if (lastMsg.role === 'model') lastMsg.text = fullResponse;
           return newHistory;
         });
       }
@@ -274,12 +478,20 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ docsUploaded = fal
             </div>
             <div className={`leading-relaxed ${msg.role === 'model' ? 'text-zinc-300' : 'text-zinc-500'}`}>
               {msg.role === 'user' && <span className="mr-2 text-accent">❯</span>}
-              {msg.role === 'user' ? (
-                msg.text
-              ) : (
-                <MessageFormatter text={msg.text} />
-              )}
-              {idx === messages.length - 1 && isTyping && <span className="inline-block w-2 h-4 bg-white animate-pulse ml-1 align-middle" />}
+              {(() => {
+                if (msg.role === 'user') return msg.text;
+                // 429 Error logic -> Show Routing UI instead of text
+                if (msg.text.includes('"error"') && msg.text.includes('429')) {
+                  try {
+                    const parsed = JSON.parse(msg.text);
+                    if (parsed.error && parsed.error.code === 429) {
+                      return <RoutingUI />;
+                    }
+                  } catch (_) { }
+                }
+                return <MessageFormatter text={msg.text} />;
+              })()}
+              {idx === messages.length - 1 && isTyping && agentLogs.length === 0 && <span className="inline-block w-2 h-4 bg-white animate-pulse ml-1 align-middle" />}
             </div>
           </div>
         ))}

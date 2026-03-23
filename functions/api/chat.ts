@@ -22,7 +22,7 @@ export async function onRequestPost(context: { request: Request, env: { GEMINI_A
         const MODEL_WATERFALL = [
             'gemini-3-flash-preview',        // Newest — extremely fast
             'gemini-2.5-flash',      // standard long-context choice
-            'gemini-3.1-flash-lite', // Massive rate limits
+            'gemini-3.1-flash-lite-preview', // Massive rate limits
             'gemini-2.5-flash-lite', // burst protection
             'gemini-2.0-flash',      // separate bucket fallback
         ];
@@ -145,108 +145,134 @@ ${ragContext ? `\n[RELEVANT CONTEXT FROM USER DOCUMENTS]\n${ragContext}\n[END CO
             }
         ];
 
-        // ── Model waterfall loop ───────────────────────────────────────────────
-        for (let i = 0; i < MODEL_WATERFALL.length; i++) {
-            const model = MODEL_WATERFALL[i];
+        // ── Model waterfall: single stream, control tokens on rotation ────────
+        const encoder = new TextEncoder();
+        let streamController: ReadableStreamDefaultController<Uint8Array>;
+        const responseStream = new ReadableStream<Uint8Array>({
+            start(c) { streamController = c; }
+        });
+
+        // Kick off the async waterfall — errors bubble into the stream
+        (async () => {
+            const streamLog = (type: string, msg: string, modelIdx: number) => {
+                const packet = JSON.stringify({ type, msg, model: modelIdx });
+                streamController.enqueue(encoder.encode(`\x00LOG:${packet}\n`));
+                console.log(msg); // keep server logs too
+            };
+
             try {
-                console.log(`[chat] Using model: ${model}`);
+                for (let i = 0; i < MODEL_WATERFALL.length; i++) {
+                    const model = MODEL_WATERFALL[i];
+                    try {
+                        streamLog(i === 0 ? 'start' : 'switch', `[chat] Using model: ${model}`, i);
 
-                const chat = ai.chats.create({
-                    model,
-                    config: {
-                        systemInstruction: SYSTEM_INSTRUCTION,
-                        tools: tools,
-                        maxOutputTokens: 8192,
-                    }
-                });
-
-                // ── Turn 1: stream the first response ─────────────────────────
-                const firstStream = await chat.sendMessageStream({ message });
-
-                const collectedFunctionCalls: any[] = [];
-                const textChunks: string[] = [];
-
-                for await (const chunk of firstStream) {
-                    if (chunk.functionCalls && chunk.functionCalls.length > 0) {
-                        collectedFunctionCalls.push(...chunk.functionCalls);
-                    }
-                    if (chunk.text) {
-                        textChunks.push(chunk.text);
-                    }
-                }
-
-                // ── Tool-call path ─────────────────────────────────────────────
-                if (collectedFunctionCalls.length > 0) {
-                    const toolResponses = await Promise.all(collectedFunctionCalls.map(async call => {
-                        if (call.name === 'get_bio') {
-                            return { functionResponse: { name: 'get_bio', response: BIO } };
-                        } else if (call.name === 'get_projects') {
-                            return { functionResponse: { name: 'get_projects', response: { projects: PORTFOLIO_DATA } } };
-                        } else if (call.name === 'get_github_repos') {
-                            const args = call.args as { limit?: number, topic?: string };
-                            let repos: any[] = [];
-                            try { repos = await fetchGitHubRepos(env, args?.limit || 10, args?.topic || ''); } catch (e) { console.error(e); }
-                            return { functionResponse: { name: 'get_github_repos', response: { repos } } };
-                        } else if (call.name === 'get_github_commits') {
-                            const args = call.args as { repo?: string, limit?: number };
-                            let result: any = {};
-                            try { result = await fetchGitHubCommits(env, args?.repo, args?.limit || 10); } catch (e) { result = { error: String(e) }; }
-                            return { functionResponse: { name: 'get_github_commits', response: result } };
-                        } else if (call.name === 'get_github_user_activity') {
-                            const args = call.args as { limit?: number };
-                            let result: any = {};
-                            try { result = await fetchGitHubActivity(env, args?.limit || 15); } catch (e) { result = { error: String(e) }; }
-                            return { functionResponse: { name: 'get_github_user_activity', response: result } };
-                        } else if (call.name === 'get_github_repo_details') {
-                            const args = call.args as { repo: string };
-                            let result: any = {};
-                            try { result = await fetchGitHubRepoDetails(env, args.repo); } catch (e) { result = { error: String(e) }; }
-                            return { functionResponse: { name: 'get_github_repo_details', response: result } };
-                        } else if (call.name === 'get_github_profile') {
-                            let result: any = {};
-                            try { result = await fetchGitHubProfile(env); } catch (e) { result = { error: String(e) }; }
-                            return { functionResponse: { name: 'get_github_profile', response: result } };
-                        } else {
-                            return { functionResponse: { name: call.name, response: { error: 'Unknown tool call' } } };
-                        }
-                    }));
-
-                    // ── Turn 2: stream answer after tool execution ─────────────
-                    const finalStream = await chat.sendMessageStream({ message: toolResponses });
-                    return streamResponse(finalStream);
-                }
-
-                // ── Pure-text path ─────────────────────────────────────────────
-                if (textChunks.length > 0) {
-                    const encoder = new TextEncoder();
-                    const readable = new ReadableStream({
-                        start(controller) {
-                            for (const chunk of textChunks) {
-                                controller.enqueue(encoder.encode(chunk));
+                        const chat = ai.chats.create({
+                            model,
+                            config: {
+                                systemInstruction: SYSTEM_INSTRUCTION,
+                                tools: tools,
+                                maxOutputTokens: 8192,
                             }
-                            controller.close();
+                        });
+
+                        // ── Agentic loop ──────────────────────────────────────
+                        let pendingCalls: any[] = [];
+                        let textChunks: string[] = [];
+
+                        const firstStream = await chat.sendMessageStream({ message });
+                        for await (const chunk of firstStream) {
+                            const parts = chunk.candidates?.[0]?.content?.parts || [];
+                            for (const p of parts) {
+                                if (p.text) textChunks.push(p.text);
+                                else if (p.functionCall) pendingCalls.push(p.functionCall);
+                            }
                         }
-                    });
-                    return new Response(readable, {
-                        headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'no-cache' }
-                    });
+
+                        const MAX_TOOL_ROUNDS = 5;
+                        for (let round = 0; round < MAX_TOOL_ROUNDS && pendingCalls.length > 0; round++) {
+                            streamLog('tool', `[chat] Tool round ${round + 1}: executing [${pendingCalls.map(c => c.name).join(', ')}]`, i);
+
+                            const toolResponses = await Promise.all(pendingCalls.map(async call => {
+                                if (call.name === 'get_bio') {
+                                    return { functionResponse: { name: 'get_bio', response: BIO } };
+                                } else if (call.name === 'get_projects') {
+                                    return { functionResponse: { name: 'get_projects', response: { projects: PORTFOLIO_DATA } } };
+                                } else if (call.name === 'get_github_repos') {
+                                    const args = call.args as { limit?: number, topic?: string };
+                                    let repos: any[] = [];
+                                    try { repos = await fetchGitHubRepos(env, args?.limit || 10, args?.topic || ''); } catch (e) { console.error(e); }
+                                    return { functionResponse: { name: 'get_github_repos', response: { repos } } };
+                                } else if (call.name === 'get_github_commits') {
+                                    const args = call.args as { repo?: string, limit?: number };
+                                    let result: any = {};
+                                    try { result = await fetchGitHubCommits(env, args?.repo, args?.limit || 10); } catch (e) { result = { error: String(e) }; }
+                                    return { functionResponse: { name: 'get_github_commits', response: result } };
+                                } else if (call.name === 'get_github_user_activity') {
+                                    const args = call.args as { limit?: number };
+                                    let result: any = {};
+                                    try { result = await fetchGitHubActivity(env, args?.limit || 15); } catch (e) { result = { error: String(e) }; }
+                                    return { functionResponse: { name: 'get_github_user_activity', response: result } };
+                                } else if (call.name === 'get_github_repo_details') {
+                                    const args = call.args as { repo: string };
+                                    let result: any = {};
+                                    try { result = await fetchGitHubRepoDetails(env, args.repo); } catch (e) { result = { error: String(e) }; }
+                                    return { functionResponse: { name: 'get_github_repo_details', response: result } };
+                                } else if (call.name === 'get_github_profile') {
+                                    let result: any = {};
+                                    try { result = await fetchGitHubProfile(env); } catch (e) { result = { error: String(e) }; }
+                                    return { functionResponse: { name: 'get_github_profile', response: result } };
+                                } else {
+                                    return { functionResponse: { name: call.name, response: { error: 'Unknown tool call' } } };
+                                }
+                            }));
+
+                            pendingCalls = [];
+                            textChunks = [];
+                            const nextStream = await chat.sendMessageStream({ message: toolResponses });
+                            for await (const chunk of nextStream) {
+                                const parts = chunk.candidates?.[0]?.content?.parts || [];
+                                for (const p of parts) {
+                                    if (p.text) textChunks.push(p.text);
+                                    else if (p.functionCall) pendingCalls.push(p.functionCall);
+                                }
+                            }
+                        }
+
+                        // ── Emit text into stream ─────────────────────────────
+                        if (textChunks.length > 0) {
+                            streamLog('done', `✓ Response complete on ${model}`, i);
+                            for (const t of textChunks) streamController.enqueue(encoder.encode(t));
+                            streamController.close();
+                            return;
+                        }
+                        // Empty response from this model — try next (don't rotate-notify)
+                        continue;
+
+                    } catch (err) {
+                        if (is429(err)) {
+                            streamLog('warn', `[chat] 429 on ${model} — rotating to next model (${i + 1}/${MODEL_WATERFALL.length}) header: ${err}`, i);
+                            continue;
+                        }
+                        throw err;
+                    }
                 }
 
-                return new Response(JSON.stringify({ error: 'Empty response' }), { status: 500 });
+                // All models exhausted — emit a structured error token
+                streamController.enqueue(encoder.encode(
+                    `\x00ERROR:${JSON.stringify({ code: 429, status: 'RESOURCE_EXHAUSTED', message: 'All models are currently rate-limited. Please try again in a moment.' })}\n`
+                ));
+                streamController.close();
 
-            } catch (err) {
-                if (is429(err)) {
-                    console.warn(`[chat] 429 on ${model} — rotating to next model (${i + 1}/${MODEL_WATERFALL.length})`);
-                    continue; // try next model
-                }
-                throw err; // non-quota error — bubble up
+            } catch (e) {
+                const msg = e instanceof Error ? e.message : String(e);
+                streamController.enqueue(encoder.encode(`\x00ERROR:${JSON.stringify({ code: 500, status: 'INTERNAL', message: msg })}\n`));
+                streamController.close();
             }
-        }
+        })();
 
-        // All models exhausted
-        return new Response(JSON.stringify({
-            error: { code: 429, status: 'RESOURCE_EXHAUSTED', message: 'All models are currently rate-limited. Please try again in a moment.' }
-        }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+        return new Response(responseStream, {
+            headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' }
+        });
 
     } catch (error) {
         console.error("Pages Function Error:", error);
@@ -434,34 +460,7 @@ function buildGitHubHeaders(env: { GITHUB_TOKEN?: string }): Record<string, stri
     return headers;
 }
 
-// Helper to pipe the generator to a ReadableStream
-function streamResponse(resultStream: AsyncGenerator<{ text?: string }, void, unknown>) {
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-        async start(controller) {
-            try {
-                for await (const chunk of resultStream) {
-                    if (chunk.text) {
-                        controller.enqueue(encoder.encode(chunk.text));
-                    }
-                }
-            } catch (e) {
-                console.error("Stream error", e)
-                controller.enqueue(encoder.encode("\n[Error processing stream]"));
-            } finally {
-                controller.close();
-            }
-        }
-    });
 
-    return new Response(stream, {
-        headers: {
-            "Content-Type": "text/plain",
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive"
-        }
-    });
-}
 
 // ── CF AI Search retrieval ─────────────────────────────────────────────────────
 
