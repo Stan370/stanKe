@@ -24,7 +24,7 @@ const GEMINI_ERRORS: Record<string, ErrorEntry> = {
   RESOURCE_EXHAUSTED: {
     label: '429 Quota Exceeded',
     color: 'orange',
-    fix: 'API rate limit reached. Wait a minute before sending another message, or check your quota in Google AI Studio.',
+    fix: 'API rate limit reached. Wait a minute before sending another message, or SET your own API key.',
   },
   CANCELLED: {
     label: '499 Request Cancelled',
