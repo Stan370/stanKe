@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "npx wrangler pages dev dist --port 8788",
     "build": "vite build && npx wrangler pages deploy dist",
     "preview": "vite preview",
     "lint": "tsc --noEmit"

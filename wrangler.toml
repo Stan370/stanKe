@@ -3,10 +3,10 @@ compatibility_date = "2024-09-25"
 pages_build_output_dir = "dist"
 
 # Cloudflare AI binding — gives access to Workers AI + AI Search (AutoRAG)
-[ai]
-binding = "AI"
+# [ai]
+# binding = "AI"
 
 # R2 bucket for raw document storage (AI Search auto-indexes this bucket)
-[[r2_buckets]]
-binding = "DOCS_BUCKET"
-bucket_name = "stanke-docs"
+# [[r2_buckets]]
+# binding = "DOCS_BUCKET"
+# bucket_name = "stanke-docs"
