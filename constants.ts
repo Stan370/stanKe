@@ -102,6 +102,7 @@ export const PORTFOLIO_DATA: Project[] = [
     tags: ['TypeScript', 'Redis', 'Devvit', 'Puzzles'],
     imageUrl: 'https://picsum.photos/800/406',
     githubUrl: 'https://github.com/Stan370',
+    demoUrl: 'https://stan370.github.io/Klotski/',
     techStack: ['TypeScript', 'Redis', 'Devvit', 'SVGs']
   },
 

@@ -42,8 +42,7 @@ async function loadPdfJs(): Promise<any> {
 
 // Secret is never baked into the frontend bundle anymore — kept here as a
 // header passthrough only if the env var was explicitly exposed via Vite.
-// For production, leave VITE_UPLOAD_SECRET unset and rely on Cloudflare's
-// network-level isolation instead.
+// For production, leave VITE_UPLOAD_SECRET unset and rely on Cloudflare's network-level isolation instead.
 const UPLOAD_SECRET = (import.meta as any).env?.VITE_UPLOAD_SECRET as string | undefined;
 
 export async function uploadDocs(files: File[]): Promise<UploadedFile[]> {

@@ -154,10 +154,11 @@ ${ragContext ? `\n[RELEVANT CONTEXT FROM USER DOCUMENTS]\n${ragContext}\n[END CO
 
         // Kick off the async waterfall — errors bubble into the stream
         (async () => {
-            const streamLog = (type: string, msg: string, modelIdx: number) => {
-                const packet = JSON.stringify({ type, msg, model: modelIdx });
-                streamController.enqueue(encoder.encode(`\x00LOG:${packet}\n`));
-                console.log(msg); // keep server logs too
+            const streamLog = (type: string, msg: string, _modelIdx: number) => {
+                // Server-side log only — never emit LOG packets into the text stream.
+                // They fuse with LLM text tokens in the same TCP chunk and are
+                // impossible to reliably filter client-side.
+                console.log(`[${type}] ${msg}`);
             };
 
             try {
@@ -175,22 +176,34 @@ ${ragContext ? `\n[RELEVANT CONTEXT FROM USER DOCUMENTS]\n${ragContext}\n[END CO
                             }
                         });
 
-                        // ── Agentic loop ──────────────────────────────────────
-                        let pendingCalls: any[] = [];
-                        let textChunks: string[] = [];
-
-                        const firstStream = await chat.sendMessageStream({ message });
-                        for await (const chunk of firstStream) {
-                            const parts = chunk.candidates?.[0]?.content?.parts || [];
-                            for (const p of parts) {
-                                if (p.text) textChunks.push(p.text);
-                                else if (p.functionCall) pendingCalls.push(p.functionCall);
+                        // ── Agentic loop — true streaming ─────────────────────
+                        // Helper: stream one sendMessageStream call, collect tool calls,
+                        // and forward text tokens to the client the instant they arrive.
+                        const streamRound = async (msgPayload: any): Promise<any[]> => {
+                            const pendingCalls: any[] = [];
+                            const genStream = await chat.sendMessageStream({ message: msgPayload });
+                            for await (const chunk of genStream) {
+                                const parts = chunk.candidates?.[0]?.content?.parts || [];
+                                for (const p of parts) {
+                                    if (p.text) {
+                                        // ✅ Emit text tokens immediately — zero buffering
+                                        streamController.enqueue(encoder.encode(p.text));
+                                    } else if (p.functionCall) {
+                                        pendingCalls.push(p.functionCall);
+                                    }
+                                }
                             }
-                        }
+                            return pendingCalls;
+                        };
+
+                        let pendingCalls = await streamRound(message);
 
                         const MAX_TOOL_ROUNDS = 5;
                         for (let round = 0; round < MAX_TOOL_ROUNDS && pendingCalls.length > 0; round++) {
-                            streamLog('tool', `[chat] Tool round ${round + 1}: executing [${pendingCalls.map(c => c.name).join(', ')}]`, i);
+                            const toolNames = pendingCalls.map(c => c.name).join(', ');
+                            streamLog('tool', `[chat] Tool round ${round + 1}: executing [${toolNames}]`, i);
+                            // Signal the frontend that tools are running
+                            streamController.enqueue(encoder.encode(`\x00TOOL:${JSON.stringify({ tools: pendingCalls.map(c => c.name) })}\n`));
 
                             const toolResponses = await Promise.all(pendingCalls.map(async call => {
                                 if (call.name === 'get_bio') {
@@ -226,27 +239,13 @@ ${ragContext ? `\n[RELEVANT CONTEXT FROM USER DOCUMENTS]\n${ragContext}\n[END CO
                                 }
                             }));
 
-                            pendingCalls = [];
-                            textChunks = [];
-                            const nextStream = await chat.sendMessageStream({ message: toolResponses });
-                            for await (const chunk of nextStream) {
-                                const parts = chunk.candidates?.[0]?.content?.parts || [];
-                                for (const p of parts) {
-                                    if (p.text) textChunks.push(p.text);
-                                    else if (p.functionCall) pendingCalls.push(p.functionCall);
-                                }
-                            }
+                            pendingCalls = await streamRound(toolResponses);
                         }
 
-                        // ── Emit text into stream ─────────────────────────────
-                        if (textChunks.length > 0) {
-                            streamLog('done', `✓ Response complete on ${model}`, i);
-                            for (const t of textChunks) streamController.enqueue(encoder.encode(t));
-                            streamController.close();
-                            return;
-                        }
-                        // Empty response from this model — try next (don't rotate-notify)
-                        continue;
+                        // ── All rounds done — close the stream ────────────────
+                        streamLog('done', `✓ Response complete on ${model}`, i);
+                        streamController.close();
+                        return;
 
                     } catch (err) {
                         if (is429(err)) {

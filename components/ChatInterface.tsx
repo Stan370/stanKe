@@ -21,7 +21,6 @@ interface ChatInterfaceProps {
 // ── Routing Animation UI ─────────────────────────────────────────────────────
 const RoutingUI: React.FC = () => {
   const [currentModel, setCurrentModel] = useState(0);
-
   // Auto-animate the model cycling
   useEffect(() => {
     const timer = setInterval(() => {
@@ -107,7 +106,6 @@ const RoutingUI: React.FC = () => {
           );
         })}
       </div>
-
       {/* Removed Log Console as requested by user */}
 
     </div>
@@ -396,6 +394,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ docsUploaded = fal
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [agentLogs, setAgentLogs] = useState<LogEvent[]>([]);
+  // toolStatus: names of tools currently being executed (empty = no tool call in flight)
+  const [toolStatus, setToolStatus] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -414,16 +414,35 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ docsUploaded = fal
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsTyping(true);
+    setToolStatus([]);
 
     try {
       setMessages(prev => [...prev, { role: 'model', text: '' }]);
 
       const stream = streamChatResponse([], userMsg);
       let fullResponse = '';
-      let buffer = '';
+      // Local mirror of toolStatus so we can read current value inside the loop
+      // without stale-closure issues (setState is async).
+      let activeTools: string[] = [];
 
       for await (const raw of stream) {
-        buffer += raw;
+        // Intercept \x00TOOL: control packets — never append to response text
+        if (raw.trimEnd().startsWith('\x00TOOL:')) {
+          try {
+            const payload = JSON.parse(raw.trimEnd().slice('\x00TOOL:'.length));
+            activeTools = payload.tools ?? [];
+            setToolStatus(activeTools);
+          } catch { /* malformed packet — ignore */ }
+          continue;
+        }
+
+        // Any real text arriving means tools have finished — clear the status chip
+        if (activeTools.length > 0) {
+          activeTools = [];
+          setToolStatus([]);
+        }
+
+        fullResponse += raw;
         setMessages(prev => {
           const newHistory = [...prev];
           const lastMsg = newHistory[newHistory.length - 1];
@@ -435,6 +454,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ docsUploaded = fal
       console.error(err);
     } finally {
       setIsTyping(false);
+      setToolStatus([]);
     }
   };
 
@@ -487,7 +507,26 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ docsUploaded = fal
                     if (parsed.error && parsed.error.code === 429) {
                       return <RoutingUI />;
                     }
-                  } catch (_) { }
+                  } catch { }
+                }
+                // Show tool-call status chip while the last message is empty
+                // and tools are actively running
+                const isLastMsg = idx === messages.length - 1;
+                if (isLastMsg && isTyping && toolStatus.length > 0 && !msg.text) {
+                  return (
+                    <div className="flex flex-col gap-2">
+                      {toolStatus.map((tool, ti) => (
+                        <div key={ti} className="inline-flex items-center gap-2 px-2 py-1 rounded border border-blue-900/60 bg-blue-950/20 text-[10px] text-blue-300 font-mono w-fit">
+                          <svg className="w-3 h-3 animate-spin shrink-0" viewBox="0 0 12 12" fill="none">
+                            <circle cx="6" cy="6" r="4.5" stroke="rgb(59 130 246 / 0.3)" strokeWidth="1.5" />
+                            <path d="M6 1.5 A4.5 4.5 0 0 1 10.5 6" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" />
+                          </svg>
+                          <span className="text-zinc-500">calling</span>
+                          <span className="text-blue-300">{tool}()</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
                 }
                 return <MessageFormatter text={msg.text} />;
               })()}
