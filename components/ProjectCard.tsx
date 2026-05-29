@@ -46,11 +46,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             if (url && url !== '#') window.open(url, '_blank', 'noreferrer');
           }
         }}
-        className={`group bg-zinc-900 border rounded-lg p-6 transition-all flex flex-col h-full cursor-pointer relative ${
-          isFeatured
-            ? 'border-zinc-600 hover:border-zinc-500 shadow-[0_0_20px_-5px_rgba(161,161,170,0.15)]'
-            : 'border-zinc-800 hover:border-zinc-700'
-        }`}
+        className={`group bg-zinc-900 border rounded-lg p-6 transition-all flex flex-col h-full cursor-pointer relative ${isFeatured
+          ? 'border-zinc-600 hover:border-zinc-500 shadow-[0_0_20px_-5px_rgba(161,161,170,0.15)]'
+          : 'border-zinc-800 hover:border-zinc-700'
+          }`}
       >
         {/* Featured badge */}
         {isFeatured && (
@@ -87,7 +86,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                 }}
               >
                 <img
-                  src={project.previewImage}
+                  src={project.imageUrl}
                   alt={`${project.title} preview`}
                   className="w-full h-36 object-cover object-top opacity-70 group-hover/preview:opacity-100 transition-opacity duration-300"
                 />

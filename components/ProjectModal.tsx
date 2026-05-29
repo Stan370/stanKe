@@ -37,10 +37,10 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                 </div>
 
                 <div className="p-8 flex-1">
-                    {project.previewImage && (
+                    {project.imageUrl && (
                         <div className="mb-8 rounded-lg overflow-hidden border border-zinc-800">
                             <img
-                                src={project.previewImage}
+                                src={project.imageUrl}
                                 alt={`${project.title} preview`}
                                 className="w-full max-h-80 object-cover object-top"
                             />

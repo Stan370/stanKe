@@ -17,11 +17,24 @@ export const PORTFOLIO_DATA: Project[] = [
     detailedDescription: 'League MBTI Analysis is a full-stack analytics platform that connects to the Riot Games API to fetch a player\'s match history and derives their MBTI personality archetype. The system analyzes champion preferences, kill/death patterns, vision control habits, and team-fight participation to map playstyle dimensions onto the MBTI framework.\n\nThe app features a shareable "Year-in-Review" report card rendered via a custom native Canvas 2D pipeline — no third-party capture libraries. A progressive match-fetching architecture provides immediate results while processing the full season\'s data in the background. All game modes are supported: Ranked Solo/Duo, ARAM, and Arena.\n\nBuilt with React + Vite, deployed on Cloudflare Pages. A serialized token-bucket rate limiter with exponential backoff keeps within Riot API limits while maximizing throughput.',
     previewImage: '/league-mbti-preview.png',
     tags: ['Riot API', 'Analytics', 'Canvas', 'React'],
-    imageUrl: 'https://imgur.com/a/AdeBmY4',
+    imageUrl: '/league-mbti-preview.png',
     demoUrl: 'https://league-mbti-analysis.pages.dev/',
     githubUrl: 'https://github.com/Stan370/League-MBTI-Analysis',
     techStack: ['React', 'Vite', 'Riot API', 'Canvas 2D', 'Cloudflare Pages'],
   },
+  {
+    id: 'reddit-tile-match',
+    title: 'Reddit Tile Match',
+    category: ProjectCategory.GAMES,
+    featured: true,
+    description: 'A new version of an old tile-match UGC game, incorporating features like daily challenges, a Reddit scheduler, and an auto-post bot, built using Devvit 0.12.',
+    detailedDescription: 'Reddit Tile Match is a modern reimagining of a classic tile-matching game, purpose-built for the Reddit platform using Devvit 0.12. The game introduces daily challenges with a persistent leaderboard, a Reddit scheduler for automated community events, and an auto-post bot that keeps the subreddit active with fresh content.\n\nThe architecture leverages Devvit\'s webview integration for rendering the game client, while server-side logic handles leaderboard state via Redis. A custom scheduler manages daily challenge rotations and community engagement posts, creating a self-sustaining game ecosystem within the Reddit platform.',
+    tags: ['Devvit', 'Reddit API', 'React'],
+    imageUrl: '/splash-background.png',
+    demoUrl: 'https://www.reddit.com/r/TileMatch/',
+    techStack: ['Devvit', 'Redis', 'React', 'Reddit API'],
+  },
+
   {
     id: 'klotski',
     title: 'Klotski / 华容道',
@@ -101,20 +114,6 @@ export const PORTFOLIO_DATA: Project[] = [
     techStack: ['Python', 'FastAPI', 'Redis Streams', 'FlatBuffers', 'Whisper']
   },
 
-  // --- GAMES ---
-  {
-    id: 'reddit-tile-match',
-    title: 'Reddit Tile Match',
-    category: ProjectCategory.GAMES,
-    featured: true,
-    description: 'A new version of an old tile-match UGC game, incorporating features like daily challenges, a Reddit scheduler, and an auto-post bot, built using Devvit 0.12.',
-    detailedDescription: 'Reddit Tile Match is a modern reimagining of a classic tile-matching game, purpose-built for the Reddit platform using Devvit 0.12. The game introduces daily challenges with a persistent leaderboard, a Reddit scheduler for automated community events, and an auto-post bot that keeps the subreddit active with fresh content.\n\nThe architecture leverages Devvit\'s webview integration for rendering the game client, while server-side logic handles leaderboard state via Redis. A custom scheduler manages daily challenge rotations and community engagement posts, creating a self-sustaining game ecosystem within the Reddit platform.',
-    previewImage: '/tile-match-preview.png',
-    tags: ['Devvit', 'Reddit API', 'React'],
-    imageUrl: 'https://picsum.photos/800/410',
-    demoUrl: 'https://www.reddit.com/r/TileMatch/',
-    techStack: ['Devvit', 'Redis', 'React', 'Reddit API'],
-  },
 
 
   // --- BLOG MOCK (Mixed EN/CN) ---
