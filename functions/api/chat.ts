@@ -154,11 +154,10 @@ ${ragContext ? `\n[RELEVANT CONTEXT FROM USER DOCUMENTS]\n${ragContext}\n[END CO
 
         // Kick off the async waterfall — errors bubble into the stream
         (async () => {
-            const streamLog = (type: string, msg: string, _modelIdx: number) => {
-                // Server-side log only — never emit LOG packets into the text stream.
-                // They fuse with LLM text tokens in the same TCP chunk and are
-                // impossible to reliably filter client-side.
-                console.log(`[${type}] ${msg}`);
+            const streamLog = (type: string, msg: string, modelIdx: number) => {
+                const packet = JSON.stringify({ type, msg, model: modelIdx });
+                streamController.enqueue(encoder.encode(`\x00LOG:${packet}\n`));
+                console.log(msg); // keep server logs too
             };
 
             try {

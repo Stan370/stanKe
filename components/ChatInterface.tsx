@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Bot, User, Terminal as TerminalIcon, ChevronRight, Database } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, User, Terminal as TerminalIcon, ChevronRight, Database, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { streamChatResponse } from '../services/geminiService';
 import { ChatMessage } from '../types';
 
@@ -144,6 +144,11 @@ const GEMINI_ERRORS: Record<string, ErrorEntry> = {
     color: 'red',
     fix: 'The backend encountered an unexpected condition. Check your API key configuration and server logs.',
   },
+  UNAVAILABLE: {
+    label: '503 Service Unavailable',
+    color: 'orange',
+    fix: 'The model is currently overloaded due to high demand. This is usually temporary. Please wait a few seconds and try again.',
+  },
 };
 
 const colorMap = {
@@ -153,16 +158,118 @@ const colorMap = {
   zinc: { bg: 'bg-zinc-900/50', border: 'border-zinc-700/60', icon: 'text-zinc-400', msg: 'text-zinc-400', fix: 'text-zinc-500', divider: 'border-zinc-700/30' },
 };
 
-function renderErrorCard(entry: ErrorEntry, message: string) {
-  const c = colorMap[entry.color];
+type ParsedError = {
+  code: number | string;
+  status: string;
+  message: string;
+  raw?: any;
+};
+
+/**
+ * Deeply parses nested JSON error strings to find the meaningful leaf message.
+ */
+function parseDeepError(text: string): ParsedError {
+  let current: any = text.trim();
+  let code: number | string = 500;
+  let status = 'INTERNAL_ERROR';
+  let message = text;
+
+  // Remove control markers or leading "ERROR:" prefix
+  if (current.startsWith('\x00ERROR:')) current = current.slice(7);
+  else if (current.startsWith('ERROR:')) current = current.slice(6);
+
+  const recursiveFind = (obj: any) => {
+    if (!obj || typeof obj !== 'object') return;
+
+    // Support various error structures (Google, Standard, common proxies)
+    if (obj.code) code = obj.code;
+    if (obj.status) status = obj.status;
+    if (obj.message) {
+      message = obj.message;
+      // If the message string itself looks like JSON, try to descend
+      if (typeof obj.message === 'string' && (obj.message.trim().startsWith('{') || obj.message.trim().startsWith('['))) {
+        try {
+          const nested = JSON.parse(obj.message);
+          recursiveFind(nested);
+        } catch { /* Not JSON or malformed */ }
+      }
+    }
+    // Recurse into common nesting keys
+    if (obj.error) recursiveFind(obj.error);
+    if (obj.details) recursiveFind(obj.details);
+  };
+
+  try {
+    const root = JSON.parse(current);
+    recursiveFind(root);
+    return { code, status, message, raw: root };
+  } catch {
+    // If it's not JSON, we just treat the whole thing as the message
+    return { code, status, message: current, raw: null };
+  }
+}
+
+const BeautifulErrorCard: React.FC<{ error: ParsedError }> = ({ error }) => {
+  const [showRaw, setShowRaw] = useState(false);
+
+  // Use status string first, then code as string, default to INTERNAL
+  const entry = GEMINI_ERRORS[error.status] ||
+    GEMINI_ERRORS[String(error.code)] ||
+    GEMINI_ERRORS.INTERNAL;
+
+  const color = colorMap[entry.color];
+
   return (
-    <div className={`${c.bg} ${c.border} border rounded p-3 my-2`}>
-      <div className={`font-bold mb-1 flex items-center gap-2 text-zinc-200`}>
-        <span className={c.icon}>⚠</span> {entry.label}
+    <div className={`mt-2 mb-4 overflow-hidden rounded-xl border ${color.border} ${color.bg} backdrop-blur-md shadow-lg animate-in fade-in slide-in-from-top-2 duration-500`}>
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          <div className={`${color.icon} mt-0.5 animate-pulse shrink-0`}>
+            <AlertCircle size={18} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1 gap-2">
+              <h3 className="text-[13px] font-bold text-zinc-100 truncate">
+                {entry.label}
+              </h3>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 bg-black/40 rounded border border-white/5 text-zinc-500 uppercase tracking-tighter shrink-0">
+                {error.status} ({error.code})
+              </span>
+            </div>
+            <p className="text-[12px] text-zinc-300 leading-relaxed font-sans">
+              {error.message}
+            </p>
+          </div>
+        </div>
+
+        <div className={`mt-4 pt-3 border-t ${color.divider}`}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Info size={12} className="text-zinc-500" />
+            <p className="text-[11px] font-medium text-zinc-400">Recommended Action</p>
+          </div>
+          <p className="text-[11px] text-zinc-400 font-sans italic opacity-80 pl-5">
+            {entry.fix}
+          </p>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={() => setShowRaw(!showRaw)}
+            className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-zinc-500 hover:text-zinc-300 transition-all group"
+          >
+            {showRaw ? 'Collapse' : 'Inspect'} Details
+            <span className="transition-transform group-hover:translate-y-0.5">
+              {showRaw ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            </span>
+          </button>
+        </div>
       </div>
-      <div className={`${c.fix} text-xs border-t ${c.divider} pt-2 mt-2`}>
-        <strong>Suggested Fix:</strong> {entry.fix}
-      </div>
+
+      {showRaw && (
+        <div className="bg-black/60 p-4 font-mono text-[10px] border-t border-zinc-800/50 overflow-x-auto text-zinc-500 max-h-60 scrollbar-hide">
+          <div className="mb-2 text-zinc-700 select-none uppercase tracking-widest text-[8px]">--- Raw Payload Trace ---</div>
+          {JSON.stringify(error.raw || error.message, null, 2)}
+        </div>
+      )}
     </div>
   );
 }
@@ -231,44 +338,32 @@ const CodeCard: React.FC<{ lang: string; code: string; blockKey: string }> = ({ 
 };
 
 const MessageFormatter: React.FC<{ text: string }> = ({ text }) => {
-  // 1. Try to extract and parse a JSON error object
-  try {
-    const jsonStart = text.indexOf('{');
-    const jsonEnd = text.lastIndexOf('}');
-    if (jsonStart !== -1 && jsonEnd > jsonStart) {
-      const parsed = JSON.parse(text.substring(jsonStart, jsonEnd + 1));
-      if (parsed.error) {
-        const status: string = parsed.error.status ?? '';
-        const code: number = parsed.error.code ?? 0;
-        const msg: string = parsed.error.message ?? JSON.stringify(parsed.error);
+  // 1. Detect and parse error packets or JSON error objects
+  const isErrorPacket = text.trim().startsWith('\x00ERROR:') || text.trim().startsWith('ERROR:');
+  const hasJsonTrigger = text.includes('{') && text.includes('}');
 
-        // Lookup by status string first, fall back to numeric code
-        const entry =
-          GEMINI_ERRORS[status] ??
-          (code === 404 ? GEMINI_ERRORS.NOT_FOUND :
-            code === 499 ? GEMINI_ERRORS.CANCELLED :
-              code === 500 ? GEMINI_ERRORS.INTERNAL : null);
-
-        if (entry) return renderErrorCard(entry, msg);
-
-        // Unknown JSON error fallback
-        return renderErrorCard(
-          { label: `Error ${code || ''}`, color: 'red', fix: 'Please check your request parameters or system configuration.' },
-          msg
-        );
+  if (isErrorPacket || (hasJsonTrigger && text.length < 2000)) {
+    try {
+      const error = parseDeepError(text);
+      // Only treat as error if we successfully extracted a structured result or if it's explicitly marked as an error packet
+      if (isErrorPacket || (error.code !== 500 || error.status !== 'INTERNAL_ERROR' || error.raw)) {
+        return <BeautifulErrorCard error={error} />;
       }
-    }
-  } catch (_) {/* not valid JSON */ }
+    } catch { /* fall back to normal formatting */ }
+  }
 
-  // 2. Plain-text error string detection (e.g. "Error: Internal Server Error: Network connection lost")
-  if (/network connection lost/i.test(text) || /internal server error/i.test(text)) {
-    return renderErrorCard(GEMINI_ERRORS.INTERNAL, text.replace(/^Error:\s*/i, ''));
-  }
-  if (/not found/i.test(text) && /404/.test(text)) {
-    return renderErrorCard(GEMINI_ERRORS.NOT_FOUND, text.replace(/^Error:\s*/i, ''));
-  }
-  if (/cancelled|canceled|499/i.test(text)) {
-    return renderErrorCard(GEMINI_ERRORS.CANCELLED, text.replace(/^Error:\s*/i, ''));
+  // 2. Plain-text error string detection fallback
+  const plainTextErrors = [
+    { re: /network connection lost/i, entry: GEMINI_ERRORS.INTERNAL },
+    { re: /internal server error/i, entry: GEMINI_ERRORS.INTERNAL },
+    { re: /not found/i, entry: GEMINI_ERRORS.NOT_FOUND },
+    { re: /cancelled|canceled|499/i, entry: GEMINI_ERRORS.CANCELLED },
+  ];
+
+  for (const pt of plainTextErrors) {
+    if (pt.re.test(text)) {
+      return <BeautifulErrorCard error={{ code: '', status: '', message: text, raw: null }} />;
+    }
   }
   const blocks: React.ReactNode[] = [];
   // Regex: split on fenced code blocks (```lang\n...```)
@@ -515,6 +610,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ docsUploaded = fal
                 if (isLastMsg && isTyping && toolStatus.length > 0 && !msg.text) {
                   return (
                     <div className="flex flex-col gap-2">
+                      // 转圈的loading
                       {toolStatus.map((tool, ti) => (
                         <div key={ti} className="inline-flex items-center gap-2 px-2 py-1 rounded border border-blue-900/60 bg-blue-950/20 text-[10px] text-blue-300 font-mono w-fit">
                           <svg className="w-3 h-3 animate-spin shrink-0" viewBox="0 0 12 12" fill="none">

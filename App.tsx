@@ -142,7 +142,7 @@ const App: React.FC = () => {
                   </div>
                   <div className="flex gap-4">
                     <span className="text-accent">$</span>
-                    <span className="text-zinc-300">ask-ai "What is Stan's experience with K8s?"</span>
+                    <span className="text-zinc-300">ask-ai "What is Stan's experience with AI?"</span>
                     <span className="text-zinc-600 ml-auto"># Query the agent</span>
                   </div>
                 </div>
@@ -152,7 +152,7 @@ const App: React.FC = () => {
             <section className="border-t border-zinc-800 pt-12">
               <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-8">Featured Projects</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {worksProjects.filter(p => ['reddit-tile-match', 'league-mbti'].includes(p.id)).map(project => (
+                {worksProjects.filter(p => p.featured).map(project => (
                   <ProjectCard key={project.id} project={project} />
                 ))}
               </div>
@@ -191,7 +191,7 @@ const App: React.FC = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {worksProjects.map(project => (
                 <ProjectCard key={project.id} project={project} />
               ))}

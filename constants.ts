@@ -8,6 +8,32 @@ export const DISABLED_CURL_IDS = [
 ];
 
 export const PORTFOLIO_DATA: Project[] = [
+  {
+    id: 'league-mbti',
+    title: 'League MBTI Analysis',
+    category: ProjectCategory.GAMES,
+    featured: true,
+    description: 'A data-driven web application that analyzes League of Legends players\' MBTI personality types based on champion pools, playstyles, and in-game behavior patterns.',
+    detailedDescription: 'League MBTI Analysis is a full-stack analytics platform that connects to the Riot Games API to fetch a player\'s match history and derives their MBTI personality archetype. The system analyzes champion preferences, kill/death patterns, vision control habits, and team-fight participation to map playstyle dimensions onto the MBTI framework.\n\nThe app features a shareable "Year-in-Review" report card rendered via a custom native Canvas 2D pipeline — no third-party capture libraries. A progressive match-fetching architecture provides immediate results while processing the full season\'s data in the background. All game modes are supported: Ranked Solo/Duo, ARAM, and Arena.\n\nBuilt with React + Vite, deployed on Cloudflare Pages. A serialized token-bucket rate limiter with exponential backoff keeps within Riot API limits while maximizing throughput.',
+    previewImage: '/league-mbti-preview.png',
+    tags: ['Riot API', 'Analytics', 'Canvas', 'React'],
+    imageUrl: 'https://imgur.com/a/AdeBmY4',
+    demoUrl: 'https://league-mbti-analysis.pages.dev/',
+    githubUrl: 'https://github.com/Stan370/League-MBTI-Analysis',
+    techStack: ['React', 'Vite', 'Riot API', 'Canvas 2D', 'Cloudflare Pages'],
+  },
+  {
+    id: 'klotski',
+    title: 'Klotski / 华容道',
+    category: ProjectCategory.GAMES,
+    description: 'An interactive puzzle game with real-time leaderboards and multi-language support. Implemented complex grid logic and collision detection in TypeScript. Integrated Redis for optimized leaderboard management and resolved ESM/CommonJS compatibility issues for Devvit/Webview integration.',
+    tags: ['TypeScript', 'Redis', 'Devvit', 'Puzzles'],
+    imageUrl: 'https://picsum.photos/800/406',
+    githubUrl: 'https://github.com/Stan370/Klotski',
+    demoUrl: 'https://stan370.github.io/Klotski/',
+    techStack: ['TypeScript', 'Redis', 'Devvit', 'SVGs'],
+    featured: false
+  },
   // --- SYSTEMS & INFRA ---
   {
     id: 'k8s-auth-system',
@@ -49,7 +75,7 @@ export const PORTFOLIO_DATA: Project[] = [
     tags: ['Agent Marketplace', 'Multi-tenant', 'LLMs', 'Supabase'],
     imageUrl: 'https://picsum.photos/800/402',
     demoUrl: 'https://devpost.com/Stan370',
-    githubUrl: 'https://github.com/Stan370',
+    githubUrl: 'https://github.com/Stan370/TonyChat',
     techStack: ['Vercel', 'Supabase', 'OpenAI', 'Claude', 'Gemini']
   },
   {
@@ -80,31 +106,16 @@ export const PORTFOLIO_DATA: Project[] = [
     id: 'reddit-tile-match',
     title: 'Reddit Tile Match',
     category: ProjectCategory.GAMES,
+    featured: true,
     description: 'A new version of an old tile-match UGC game, incorporating features like daily challenges, a Reddit scheduler, and an auto-post bot, built using Devvit 0.12.',
+    detailedDescription: 'Reddit Tile Match is a modern reimagining of a classic tile-matching game, purpose-built for the Reddit platform using Devvit 0.12. The game introduces daily challenges with a persistent leaderboard, a Reddit scheduler for automated community events, and an auto-post bot that keeps the subreddit active with fresh content.\n\nThe architecture leverages Devvit\'s webview integration for rendering the game client, while server-side logic handles leaderboard state via Redis. A custom scheduler manages daily challenge rotations and community engagement posts, creating a self-sustaining game ecosystem within the Reddit platform.',
+    previewImage: '/tile-match-preview.png',
     tags: ['Devvit', 'Reddit API', 'React'],
     imageUrl: 'https://picsum.photos/800/410',
     demoUrl: 'https://www.reddit.com/r/TileMatch/',
+    techStack: ['Devvit', 'Redis', 'React', 'Reddit API'],
   },
-  {
-    id: 'league-mbti',
-    title: 'League MBTI Analysis',
-    category: ProjectCategory.GAMES,
-    description: 'A data-driven web application to analyze the MBTI personality types of League of Legends players based on their champion pools and playstyles.',
-    tags: ['Analytics', 'Web', 'Data'],
-    imageUrl: 'https://picsum.photos/800/411',
-    demoUrl: 'https://league-mbti-analysis.pages.dev/',
-  },
-  {
-    id: 'klotski',
-    title: 'Klotski / 华容道',
-    category: ProjectCategory.GAMES,
-    description: 'An interactive puzzle game with real-time leaderboards and multi-language support. Implemented complex grid logic and collision detection in TypeScript. Integrated Redis for optimized leaderboard management and resolved ESM/CommonJS compatibility issues for Devvit/Webview integration.',
-    tags: ['TypeScript', 'Redis', 'Devvit', 'Puzzles'],
-    imageUrl: 'https://picsum.photos/800/406',
-    githubUrl: 'https://github.com/Stan370',
-    demoUrl: 'https://stan370.github.io/Klotski/',
-    techStack: ['TypeScript', 'Redis', 'Devvit', 'SVGs']
-  },
+
 
   // --- BLOG MOCK (Mixed EN/CN) ---
   {
@@ -142,9 +153,9 @@ export const BIO = {
   tagline: "Building apps and hacking systems with frontier AI.",
   summary: "Who the hell am I? I'm @Stan370, a solo entrepreneur, full stack hacker, and builder of apps. I love to hack systems and use frontier AI models to build cool things. I share everything I know about making awesome software through my projects, articles, and open-source experiments.",
   skills: [
-    "Golang", "Node.js", "Python", "RESTful", "Socket", "Auth", "Microservices", "Concurrency", "Distributed Systems",
-    "LLM Integration", "Agent Architecture", "Multi-model Routing", "Whisper ASR",
-    "TypeScript", "React", "Next.js", "Vite", "TailwindCSS",
+    "Golang", "Python", "Node.js", "RESTful", "Socket", "Auth", "Microservices", "Concurrency", "Distributed Systems",
+    "LLM Integration", "Agent harness", "Whisper ASR",
+    "TypeScript", "React", "Next.js", "Cloudflare", "TailwindCSS",
     "Docker", "Linux", "CI/CD", "Observability"
   ]
 };

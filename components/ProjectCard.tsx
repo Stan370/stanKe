@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Project, ProjectCategory } from '../types';
 import { DISABLED_CURL_IDS } from '../constants';
 import { StatsChart } from './StatsChart';
-import { Github, ExternalLink, Activity, Terminal, Gamepad2, FlaskConical, BookOpen, Copy, Check, Info } from 'lucide-react';
+import { Github, ExternalLink, Activity, Terminal, Gamepad2, FlaskConical, BookOpen, Copy, Check, Info, Star } from 'lucide-react';
 import { ProjectModal } from './ProjectModal';
 
 interface ProjectCardProps {
@@ -33,6 +33,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const isFeatured = project.featured;
+
   return (
     <>
       <div
@@ -44,8 +46,19 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             if (url && url !== '#') window.open(url, '_blank', 'noreferrer');
           }
         }}
-        className="group bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-all flex flex-col h-full cursor-pointer relative"
+        className={`group bg-zinc-900 border rounded-lg p-6 transition-all flex flex-col h-full cursor-pointer relative ${
+          isFeatured
+            ? 'border-zinc-600 hover:border-zinc-500 shadow-[0_0_20px_-5px_rgba(161,161,170,0.15)]'
+            : 'border-zinc-800 hover:border-zinc-700'
+        }`}
       >
+        {/* Featured badge */}
+        {isFeatured && (
+          <div className="absolute -top-2.5 right-4 flex items-center gap-1 px-2 py-0.5 bg-zinc-800 border border-zinc-600 rounded-full text-[9px] font-mono uppercase tracking-widest text-zinc-300">
+            <Star size={9} className="text-amber-500 fill-amber-500" /> Featured
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <CategoryIcon category={project.category} />
@@ -62,16 +75,35 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           {project.description}
         </p>
 
+        {/* Preview image + View Details for featured projects */}
         {project.detailedDescription && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-1.5 text-[10px] font-mono py-1.5 px-3 rounded-full border border-zinc-700 uppercase tracking-widest mb-6 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-600 transition-all self-start"
-          >
-            <Info size={12} /> View Details
-          </button>
+          <div className="mb-6">
+            {project.previewImage && (
+              <div
+                className="relative mb-3 rounded overflow-hidden border border-zinc-800 group/preview"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsModalOpen(true);
+                }}
+              >
+                <img
+                  src={project.previewImage}
+                  alt={`${project.title} preview`}
+                  className="w-full h-36 object-cover object-top opacity-70 group-hover/preview:opacity-100 transition-opacity duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent" />
+              </div>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 text-[10px] font-mono py-1.5 px-3 rounded-full border border-zinc-700 uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-600 transition-all self-start"
+            >
+              <Info size={12} /> View Details
+            </button>
+          </div>
         )}
 
         {project.metrics && (

@@ -27,3 +27,4 @@ dist-ssr
 .dev.vars
 *.wrangler
 *.md
+/antigravity_export

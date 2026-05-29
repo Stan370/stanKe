@@ -5,7 +5,7 @@
 Stan is a Solo Entrepreneur and Full-Stack Hacker specializing in frontier AI integrations, high-performance systems architecture, and rapid prototyping. He builds scalable backend infrastructure, modern frontend experiences (React/TypeScript), and deployments optimized for low latency and high availability.
 
 ## 🛠 Skills & Expertise
-*   **Languages:** TypeScript/JavaScript, Python, Golang, Rust, SQL
+*   **Languages:** TypeScript/JavaScript, Python, Golang, Java, SQL
 *   **Frontend Ecosystem:** React 19, Vite, Tailwind CSS, Next.js, Framer Motion
 *   **Backend & Infra:** Cloudflare Workers/Pages, Kubernetes, Docker, Node.js, FastAPI, Celery
 *   **Data & AI:** Google Gemini API Tooling, Vercel AI SDK, Postgres, Neo4j, Redis, Pinecone, Llama.cpp

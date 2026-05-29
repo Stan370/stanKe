@@ -19,6 +19,8 @@ export interface Project {
   category: ProjectCategory;
   description: string;
   detailedDescription?: string;
+  previewImage?: string;
+  featured?: boolean;
   tags: string[];
   imageUrl: string;
 

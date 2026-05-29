@@ -37,6 +37,16 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                 </div>
 
                 <div className="p-8 flex-1">
+                    {project.previewImage && (
+                        <div className="mb-8 rounded-lg overflow-hidden border border-zinc-800">
+                            <img
+                                src={project.previewImage}
+                                alt={`${project.title} preview`}
+                                className="w-full max-h-80 object-cover object-top"
+                            />
+                        </div>
+                    )}
+
                     <div className="flex flex-wrap gap-2 mb-8">
                         {project.techStack?.map(tech => (
                             <span key={tech} className="px-2 py-1 bg-zinc-800 text-zinc-300 text-[10px] font-mono uppercase tracking-widest rounded border border-zinc-700">
